@@ -1,0 +1,144 @@
+/* decurio cms · public site · corporate design
+   palette: #141414 ink · #f0f0f0 paper · #d6b399 sand · #f05078 accent
+   fonts: Celeste Regular (body) · Lato Regular (headlines, uppercase) */
+
+@font-face {
+  font-family: 'Celeste';
+  src: url('../fonts/CelesteOffcPro.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Lato';
+  src: url('../fonts/Lato-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --ink: #141414;
+  --paper: #f0f0f0;
+  --sand: #d6b399;
+  --accent: #f05078;
+  --line: rgba(214, 179, 153, .25);
+  --line-strong: rgba(214, 179, 153, .4);
+  --muted: rgba(240, 240, 240, .6);
+  --font-body: 'Celeste', Georgia, serif;
+  --font-head: 'Lato', 'Helvetica Neue', Arial, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 48px 24px 80px;
+}
+
+.page { width: 100%; max-width: 760px; }
+
+header { text-align: center; margin-bottom: 56px; }
+.logo-link { display: inline-block; text-decoration: none; }
+.logo-img { display: block; max-width: 260px; width: 70%; margin: auto; height: auto; }
+.logo-text { font: 400 2.2rem var(--font-head); letter-spacing: .35em; color: var(--paper); }
+.logo-text span { color: var(--accent); }
+.tagline {
+  margin-top: 10px;
+  font: 400 .72rem var(--font-head);
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.filet { width: 40px; height: 1px; background: var(--accent); margin: 26px auto 0; opacity: .7; }
+
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px 28px; }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+.album { perspective: 1200px; }
+.card {
+  position: relative;
+  aspect-ratio: 1;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform .7s cubic-bezier(.4, 0, .2, 1);
+}
+.card.flipped { transform: rotateY(180deg); }
+.face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.face.front img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.9); }
+.placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, rgba(240, 240, 240, .03), rgba(214, 179, 153, .08));
+  font-style: italic;
+  color: var(--sand);
+  text-align: center;
+  padding: 1rem;
+}
+.face.back { transform: rotateY(180deg); background: #191716; padding: 14px 12px; gap: 7px; justify-content: center; }
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border: 1px solid var(--line-strong);
+  color: var(--paper);
+  text-decoration: none;
+  font: 400 .62rem var(--font-head);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.btn:hover, .btn.primary { background: var(--accent); color: var(--ink); }
+.btn .arrow { color: var(--accent); }
+.btn.primary .arrow, .btn:hover .arrow { color: var(--ink); }
+
+.hint {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px;
+  text-align: center;
+  font: 400 .58rem var(--font-head);
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  background: rgba(20, 20, 20, .55);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.card:hover .hint { opacity: 1; }
+
+.album-title {
+  margin-top: 14px;
+  font: 400 .88rem var(--font-head);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+.album-artists { margin-top: 4px; font-size: .8rem; color: var(--muted); line-height: 1.5; }
+
+footer {
+  margin-top: 64px;
+  text-align: center;
+  font: 400 .68rem var(--font-head);
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--sand);
+}
+footer a { color: var(--accent); text-decoration: none; }

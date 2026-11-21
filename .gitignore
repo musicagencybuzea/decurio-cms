@@ -1,0 +1,5 @@
+app/config/config.php
+uploads/albums/*
+!uploads/albums/.htaccess
+.DS_Store
+Thumbs.db
