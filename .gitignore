@@ -1,5 +1,9 @@
 app/config/config.php
 uploads/albums/*
 !uploads/albums/.htaccess
+uploads/music/*
+!uploads/music/.htaccess
+uploads/stickers/*
+!uploads/stickers/.htaccess
 .DS_Store
 Thumbs.db

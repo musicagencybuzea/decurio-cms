@@ -6,7 +6,8 @@ require_login();
 
 $total = (int)db()->query('SELECT COUNT(*) FROM albums')->fetchColumn();
 $published = (int)db()->query("SELECT COUNT(*) FROM albums WHERE status='published'")->fetchColumn();
-$drafts = $total - $published;
+$scheduled = (int)db()->query("SELECT COUNT(*) FROM albums WHERE status='scheduled'")->fetchColumn();
+$drafts = $total - $published - $scheduled;
 
 admin_page_open(t('nav.dashboard'), 'dashboard');
 ?>
@@ -21,6 +22,10 @@ admin_page_open(t('nav.dashboard'), 'dashboard');
     <div class="card">
         <span class="label"><?= e(t('dash.published')) ?></span>
         <p class="num"><?= $published ?></p>
+    </div>
+    <div class="card">
+        <span class="label"><?= e(t('dash.scheduled')) ?></span>
+        <p class="num"><?= $scheduled ?></p>
     </div>
     <div class="card">
         <span class="label"><?= e(t('dash.drafts')) ?></span>

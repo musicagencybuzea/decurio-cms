@@ -1,0 +1,17 @@
+# decurio CMS — Apache config (shared hosting, Febas)
+# Exclusive release pages: links.decur.io/007 -> index.php?num=007
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+    RewriteRule ^([0-9]{1,4})/?$ index.php?num=$1 [L,QSA]
+</IfModule>
+
+# Never expose config or dotfiles
+<FilesMatch "^(config\.php|\.htaccess|.*\.sql)$">
+    Require all denied
+</FilesMatch>
+
+# Default icon if no favicon configured
+DirectoryIndex index.php

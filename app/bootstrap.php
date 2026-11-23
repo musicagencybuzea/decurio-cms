@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+date_default_timezone_set('Europe/Berlin');
+
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax',
