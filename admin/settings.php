@@ -38,10 +38,10 @@ admin_page_open(t('settings.title'), 'settings');
         <input id="tagline" name="tagline" value="<?= e($s['tagline'] ?? '') ?>">
         <label for="logo_url"><?= e(t('settings.logo_url')) ?></label>
         <input id="logo_url" name="logo_url" value="<?= e($s['logo_url'] ?? '') ?>">
-        <label for="logo_file"><?= e(t('settings.logo_file')) ?></label>
-        <input id="logo_file" name="logo_file" value="<?= e($s['logo_file'] ?? '') ?>">
         <label for="footer_text"><?= e(t('settings.footer')) ?></label>
         <input id="footer_text" name="footer_text" value="<?= e($s['footer_text'] ?? '') ?>">
+        <label for="logo_file"><?= e(t('settings.logo_file')) ?></label>
+        <input id="logo_file" name="logo_file" value="<?= e($s['logo_file'] ?? '') ?>">
         <label for="favicon_file"><?= e(t('settings.favicon')) ?></label>
         <input id="favicon_file" name="favicon_file" placeholder="assets/images/favicon.png" value="<?= e($s['favicon_file'] ?? '') ?>">
         <label for="welcome_track_id"><?= e(t('settings.welcome')) ?></label>

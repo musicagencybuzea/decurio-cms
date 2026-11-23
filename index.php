@@ -106,7 +106,7 @@ $favicon = $settings['favicon_file'] ?? '';
         <?php if ($pageUrl !== ''): ?><a class="album-meta" href="<?= e($pageUrl) ?>"><?php else: ?><div class="album-meta"><?php endif; ?>
             <h2 class="album-title"><?= e($album['title']) ?></h2>
             <?php if (!empty($album['subtitle'])): ?><p class="album-subtitle"><?= e($album['subtitle']) ?></p><?php endif; ?>
-            <p class="album-artists"><?= e($album['artists']) ?></p>
+            <p class="album-artists"><?= artists_html((string)$album['artists']) ?></p>
             <?php if (!empty($album['is_single'])): ?><p class="album-single">single</p><?php endif; ?>
         <?php if ($pageUrl !== ''): ?></a><?php else: ?></div><?php endif; ?>
     </article>

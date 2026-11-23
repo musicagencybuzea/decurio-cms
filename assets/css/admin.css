@@ -284,3 +284,71 @@ td.status { letter-spacing: .06em; }
 /* up/down fallback buttons (when SortableJS CDN is unreachable) */
 .drag-cell button { border: 0; color: var(--accent); padding: 0 4px; font-size: .7rem; letter-spacing: 0; }
 .drag-cell button:hover { color: var(--sand); }
+
+/* ---------- v1.3 ---------- */
+
+/* form sections: clear blocks for Main page / Exclusive page / Publication */
+.form-box { background: var(--surface); border: 1px solid var(--line); padding: 20px 22px 4px; margin: 0 0 22px; }
+.form-box h2 { margin: 0 0 14px; }
+
+/* library sub-tabs */
+.subtabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; }
+.subtab {
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  color: var(--paper);
+  font: 400 .6rem var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  text-decoration: none;
+}
+.subtab:hover, .subtab.active { border-color: var(--accent); color: var(--accent); }
+
+/* platform chips (preferred) */
+.chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 14px; }
+.chip {
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: none;
+  color: var(--paper);
+  padding: 8px 14px;
+  font: 400 .6rem var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+
+/* unified, draggable link list */
+.link-item {
+  display: grid;
+  grid-template-columns: auto minmax(110px, 1fr) minmax(160px, 1.9fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px dotted var(--line);
+}
+.link-item input { padding: 8px 10px; }
+.link-item .remove-row { background: none; border: 0; color: var(--accent); padding: 4px 8px; font-size: .85rem; }
+.link-item .remove-row:hover { color: var(--sand); }
+.mini-arrow { border: 0; color: var(--accent); padding: 0 3px; font-size: .7rem; letter-spacing: 0; }
+.mini-arrow:hover { color: var(--sand); }
+
+/* platforms: inline edit rows with checkboxes glued to their label */
+.platform-edit { display: grid; grid-template-columns: minmax(120px, 200px) 1fr auto; gap: 8px 12px; align-items: center; }
+.platform-edit .check-row { margin: 0; grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.platform-edit input[type="text"], .platform-edit input:not([type]) { max-width: 220px; }
+
+/* dropdown readability: dark text on light background, beige when selected */
+select option { color: #141414; background: #f0f0f0; }
+select option:checked, select option:hover { background: #d6b399; color: #141414; }
+
+/* releases list */
+.row-cover { width: 34px; height: 34px; object-fit: cover; vertical-align: middle; margin-right: 8px; border: 1px solid var(--line); }
+.cover-thumb { max-width: 110px; display: block; border: 1px solid var(--line-strong); margin: 6px 0; }
+
+/* checkboxes stay glued to their label, not the next question */
+.check-row { margin: 12px 0 0; }
+.check-row label.inline { margin: 0; }

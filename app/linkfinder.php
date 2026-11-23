@@ -143,7 +143,7 @@ function find_links(string $url, array $config): array
     }
 
     return [
-        'album' => ['title' => $title, 'artists' => $artists, 'upc' => $upc],
+        'album' => ['title' => $title, 'artists' => $artists, 'upc' => $upc, 'cover' => $album['images'][0]['url'] ?? ''],
         'results' => $results,
     ];
 }

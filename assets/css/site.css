@@ -222,3 +222,30 @@ a.album-meta:hover .album-title { color: var(--accent); }
   from { transform: translateX(100%); }
   to { transform: translateX(-100%); }
 }
+
+/* ---------- v1.3 ---------- */
+
+/* title a bit larger, subtitle follows the title design (same font & colour, no italics) */
+.album-title { font-size: .95rem; }
+.album-subtitle {
+  font: 400 .78rem var(--font-head);
+  letter-spacing: .12em;
+  text-transform: none;
+  color: inherit;
+  opacity: .82;
+  margin-top: 4px;
+}
+.album-artists { margin-top: 5px; }
+/* artist names never break in the middle: wraps only happen after commas */
+.artist { white-space: nowrap; }
+
+/* whole title+subtitle+artists block visibly reacts on hover */
+a.album-meta:hover { color: var(--accent); }
+a.album-meta:hover .album-artists { color: var(--accent); }
+
+/* stickers: fully visible, straight, half of the sticker glued on the cover (like Opus Klassik) */
+.sticker.pos-tl { top: -11%; left: -13%; transform: none; }
+.sticker.pos-tc { top: -13%; left: 37%; transform: none; }
+.sticker.pos-tr { top: -11%; right: -13%; transform: none; }
+.grid { grid-template-columns: repeat(2, 1fr); gap: 56px 28px; row-gap: 56px; }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr; gap: 72px; } }

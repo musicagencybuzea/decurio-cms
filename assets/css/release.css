@@ -222,3 +222,16 @@ body.release-page {
   .release-wrap { padding-top: 40px; gap: 22px; }
   .cover-toggle { width: 40px; height: 40px; font-size: .75rem; }
 }
+
+/* ---------- v1.3 ---------- */
+.release-head h1 { font-size: 1.5rem; }
+.release-subtitle {
+  font: 400 1rem var(--font-head);
+  letter-spacing: .12em;
+  text-transform: none;
+  font-style: normal;
+  opacity: .82;
+  margin-top: 6px;
+}
+.release-artists { margin-top: 6px; }
+.release-artists .artist { white-space: nowrap; }

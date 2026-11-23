@@ -63,7 +63,7 @@ function render_release_page(array $album, bool $preview): never
     <header class="release-head">
         <h1><?= e($album['title']) ?></h1>
         <?php if (!empty($album['subtitle'])): ?><p class="release-subtitle"><?= e($album['subtitle']) ?></p><?php endif; ?>
-        <p class="release-artists"><?= e($album['artists']) ?></p>
+        <p class="release-artists"><?= artists_html((string)$album['artists']) ?></p>
     </header>
 
     <section class="link-box box-<?= e($box) ?><?= $transparent ? ' box-transparent' : '' ?>">

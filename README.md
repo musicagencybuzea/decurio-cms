@@ -1,7 +1,19 @@
-# decurio CMS – version 1.2 (pages de liens exclusives + bibliothèques)
+# decurio CMS – version 1.3 (admin réorganisée, bibliothèque unifiée, pochette automatique)
 
 CMS PHP/MySQL autonome installé sur **http​s://links.decur.io** et administré via FTP (FileZilla).
 Page publique en anglais ; administration en anglais, français ou allemand (EN par défaut).
+
+## Nouveautés v1.3
+
+- **Admin réorganisée** : formulaire de release en trois blocs clairs – **Main page** (titre, sous-titre, artistes, pochette, single, stickers, liens), **Exclusive page** (numéro de release, réseaux sociaux, musique, apparence + bouton Aperçu) et **Publication** (brouillon / publiée / planifiée) à la toute fin.
+- **Nouvelle navigation** : Dashboard · **New Releases** (création) · **Releases** (liste complète, glisser-déposer, aperçu, lien public) · **Bibliothèque** (sous-onglets plateformes / stickers / musique) · Paramètres.
+- **Liens** : seules les plateformes « preferred » sont proposées d'office (jetons cliquables + liste déroulante pour les autres + liens personnalisés) ; la liste finale de liens se réorganise par glisser-déposer, dans l'ordre exact d'affichage public.
+- **Pochette automatique** : la recherche Spotify propose la pochette officielle ; un clic la télécharge sur le serveur au moment de la sauvegarde. Bouton d'envoi manuel conservé en secours.
+- **Plateformes** : réorganisables par glisser-déposer dans la bibliothèque.
+- **Design public affiné** : sous-titre aligné sur le style du titre (même police/couleur, sans italique), titre plus grand, noms d'artistes jamais coupés en milieu de mot (retour à la ligne uniquement après les virgules), stickers entièrement visibles à moitié collés sur la pochette (sans inclinaison), bloc titre+sous-titre+artistes entièrement cliquable avec survol visible.
+- **Lisibilité admin** : choix des listes déroulantes en noir sur blanc (sélection sur fond beige), cases à cocher collées à leur libellé.
+- **Paramètres réorganisés** dans l'ordre : titre du site, sous-titre, URL du logo, texte du footer, chemin du logo, chemin du favicon, musique d'accueil.
+- Connexion simultanée multi-appareils avec un même compte : prendre depuis toujours (sessions indépendantes), confirmé.
 
 ## Nouveautés v1.2
 
@@ -24,9 +36,12 @@ index.php                   Page publique + routage /XXX et ?preview=ID
 admin/login.php             Connexion (EN/FR/DE)
 admin/dashboard.php         Total / Published / Scheduled / Drafts
 admin/albums.php            Formulaire complet v1.2 + drag & drop + chercheur de liens
-admin/platforms.php         Bibliothèque des plateformes
-admin/stickers.php          Bibliothèque de stickers (upload)
-admin/music.php             Bibliothèque musicale (upload, trim 30 s ffmpeg)
+admin/releases.php          Liste de toutes les sorties (glisser-déposer, aperçu)
+admin/library.php           Bibliothèque unifiée (sous-onglets)
+admin/_section_*.php        Sections plateformes / stickers / musique
+admin/platforms.php         → renvoie vers la bibliothèque (compat.)
+admin/stickers.php          → idem
+admin/music.php             → idem
 admin/find-links.php        Endpoint AJAX de la recherche automatique
 admin/settings.php          Paramètres (dont favicon + musique d'accueil)
 admin/logout.php

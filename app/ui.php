@@ -43,9 +43,8 @@ function admin_page_open(string $title, string $active): void
 <nav class="mainnav">
     <a class="tab<?= $active === 'dashboard' ? ' active' : '' ?>" href="dashboard.php"><?= e(t('nav.dashboard')) ?></a>
     <a class="tab<?= $active === 'albums' ? ' active' : '' ?>" href="albums.php"><?= e(t('nav.albums')) ?></a>
-    <a class="tab<?= $active === 'platforms' ? ' active' : '' ?>" href="platforms.php"><?= e(t('nav.platforms')) ?></a>
-    <a class="tab<?= $active === 'stickers' ? ' active' : '' ?>" href="stickers.php"><?= e(t('nav.stickers')) ?></a>
-    <a class="tab<?= $active === 'music' ? ' active' : '' ?>" href="music.php"><?= e(t('nav.music')) ?></a>
+    <a class="tab<?= $active === 'releases' ? ' active' : '' ?>" href="releases.php"><?= e(t('nav.releases')) ?></a>
+    <a class="tab<?= $active === 'library' ? ' active' : '' ?>" href="library.php"><?= e(t('nav.library')) ?></a>
     <a class="tab<?= $active === 'settings' ? ' active' : '' ?>" href="settings.php"><?= e(t('nav.settings')) ?></a>
     <a class="tab logout" href="logout.php"><?= e(t('nav.logout')) ?></a>
 </nav>
@@ -114,6 +113,13 @@ function album_stickers(array $album): array
         }
     }
     return $out;
+}
+
+/** Render "Artist A, Artist B" with per-name non-breaking wraps (line breaks only after commas). */
+function artists_html(string $artists): string
+{
+    $names = array_values(array_filter(array_map('trim', explode(',', $artists)), fn($a) => $a !== ''));
+    return implode(', ', array_map(fn($a) => '<span class="artist">' . e($a) . '</span>', $names));
 }
 
 /** Reorder helper: fetch all tracks for selects. */
