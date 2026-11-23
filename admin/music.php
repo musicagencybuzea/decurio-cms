@@ -9,8 +9,12 @@ function ffmpeg_available(): bool
 {
     static $available = null;
     if ($available === null) {
-        @exec('command -v ffmpeg 2>/dev/null', $out, $code);
-        $available = $code === 0 && !empty($out[0]);
+        $available = false;
+        // exec() and friends are often disabled on shared hosting - never call them blind.
+        if (function_exists('exec') && !in_array('exec', array_map('trim', explode(',', (string)ini_get('disable_functions'))), true)) {
+            @exec('command -v ffmpeg 2>/dev/null', $out, $code);
+            $available = $code === 0 && !empty($out[0]);
+        }
     }
     return $available;
 }
@@ -18,10 +22,11 @@ function ffmpeg_available(): bool
 /** Trim a freshly uploaded audio file to 30 s (stream copy, no re-encoding) if needed. */
 function maybe_trim_audio(string $absPath): void
 {
+    if (!ffmpeg_available()) return;
     if (filesize($absPath) < 300000) return; // already short, leave it alone
-    $escaped = escapeshellarg($absPath);
     $tmp = $absPath . '.tmp';
-    @exec("ffmpeg -y -i " . $escaped . " -t 30 -c copy " . escapeshellarg($tmp) . " 2>/dev/null", $o, $code);
+    $cmd = 'ffmpeg -y -i ' . escapeshellarg($absPath) . ' -t 30 -c copy ' . escapeshellarg($tmp) . ' 2>/dev/null';
+    @exec($cmd, $o, $code);
     if ($code === 0 && is_file($tmp) && filesize($tmp) > 1000) {
         rename($tmp, $absPath);
     } else {
