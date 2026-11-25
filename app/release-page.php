@@ -19,11 +19,6 @@ function render_release_page(array $album, bool $preview): never
     $transparent = !empty($album['box_transparent']);
     $releaseDate = (string)($album['release_date'] ?? '');
 
-    $baseIcons = ['instagram', 'facebook', 'youtube', 'tiktok']; // screen corners: top-left, bottom-left, top-right, bottom-right
-    $cornerSocials = [];
-    foreach ($baseIcons as $key) {
-        if (!empty($socials[$key])) $cornerSocials[$key] = $socials[$key];
-    }
 
     http_response_code(200);
     ?>
@@ -43,13 +38,6 @@ function render_release_page(array $album, bool $preview): never
 <div class="bg-blur-layer" style="background-image:url('<?= e($album['cover_path']) ?>')"></div>
 <?php endif; ?>
 <?php if ($preview): ?><div class="preview-banner">PREVIEW</div><?php endif; ?>
-
-<nav class="corner-socials">
-<?php foreach ($cornerSocials as $key => $url): ?>
-    <a class="corner-social cs-<?= $key === 'instagram' ? 'tl' : ($key === 'facebook' ? 'bl' : ($key === 'youtube' ? 'tr' : 'br')) ?>"
-       href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= e(ucfirst($key)) ?>"><?= social_icon($key) ?></a>
-<?php endforeach; ?>
-</nav>
 
 <main class="release-wrap">
     <a class="release-brand" href="/">decur.io</a>
@@ -85,8 +73,15 @@ function render_release_page(array $album, bool $preview): never
         <?php endif; ?>
     </section>
 
-    <?php if ($extraSocials): ?>
+    <?php if ($socials || $extraSocials): ?>
     <nav class="socials">
+        <?php foreach (['instagram', 'facebook', 'youtube', 'tiktok'] as $key): ?>
+            <?php if (!empty($socials[$key])): ?>
+            <a href="<?= e($socials[$key]) ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= e(ucfirst($key)) ?>">
+                <?= social_icon($key) ?>
+            </a>
+            <?php endif; ?>
+        <?php endforeach; ?>
         <?php foreach ($extraSocials as $extra): ?>
             <?php $k = (string)($extra['platform'] ?? ''); if (isset($extra['url']) && $extra['url'] !== ''): ?>
             <a href="<?= e($extra['url']) ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= e(ucfirst($k)) ?>"><?= social_icon($k) ?></a>

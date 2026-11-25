@@ -79,27 +79,6 @@ body.release-page {
 }
 .bg-noir .cover-placeholder, .bg-gris .cover-placeholder, .bg-blur .cover-placeholder { color: var(--sand); }
 
-/* ---------- corner socials (fixed positions: Instagram top-left, Facebook bottom-left,
-   YouTube top-right, TikTok bottom-right) — extra accounts go in a row below the link box ---------- */
-.corner-socials a {
-  position: fixed;
-  z-index: 40;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: inherit;
-  opacity: .6;
-  transition: opacity .2s;
-}
-.corner-socials a:hover { opacity: 1; }
-.cs-tl { top: 12px; left: 12px; }
-.cs-bl { bottom: 12px; left: 12px; }
-.cs-tr { top: 12px; right: 12px; }
-.cs-br { bottom: 12px; right: 12px; }
-@media (max-width: 480px) { .corner-socials a { width: 34px; height: 34px; } .corner-socials svg { width: 21px; height: 21px; } }
-
 /* ---------- titles ---------- */
 .release-head { text-align: center; }
 .release-head h1 {

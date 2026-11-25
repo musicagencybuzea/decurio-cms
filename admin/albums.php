@@ -340,7 +340,7 @@ admin_page_open(t('albums.manage'), 'albums');
         <h2><?= e(t('albums.section.exclusive')) ?></h2>
         <h3><?= e(t('albums.field.socials')) ?></h3>
         <div class="social-grid">
-            <?php foreach (['instagram' => 'albums.social.instagram', 'facebook' => 'albums.social.facebook', 'tiktok' => 'albums.social.tiktok', 'youtube' => 'albums.social.youtube'] as $key => $lab): ?>
+            <?php foreach (['instagram' => 'albums.social.instagram', 'facebook' => 'albums.social.facebook', 'youtube' => 'albums.social.youtube', 'tiktok' => 'albums.social.tiktok'] as $key => $lab): ?>
                 <div>
                     <label for="social-<?= e($key) ?>"><?= e(t($lab)) ?></label>
                     <input id="social-<?= e($key) ?>" type="url" name="socials[<?= e($key) ?>]" placeholder="https://&hellip;" value="<?= e($socials[$key] ?? '') ?>">

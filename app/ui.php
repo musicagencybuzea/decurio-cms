@@ -18,14 +18,12 @@ const MONTH_NAMES = [
     'fr' => ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
 ];
 
-/** Format YYYY-MM-DD as "24 April 2026" / "24. April 2026" / "24 avril 2026". */
+/** Format YYYY-MM-DD as "24 April 2026" — month name always in English (public pages). */
 function album_out_text(?string $ymd): string
 {
     if (!$ymd || !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $ymd, $m)) return '';
-    $names = MONTH_NAMES[lang()] ?? MONTH_NAMES['en'];
     $day = (int)$m[3];
-    $sep = lang() === 'de' ? '. ' : ' ';
-    return $day . $sep . $names[(int)$m[2] - 1] . ' ' . $m[1];
+    return $day . ' ' . MONTH_NAMES['en'][(int)$m[2] - 1] . ' ' . $m[1];
 }
 
 /** Neutral monochrome platform logo (inline SVG, currentColor). Returns '' for unknown platforms. */

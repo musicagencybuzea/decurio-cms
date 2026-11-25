@@ -350,8 +350,8 @@ td.status { letter-spacing: .06em; }
   margin-top: 8px;
 }
 .extra-social .remove-row { background: none; border: 0; color: var(--accent); font-size: .85rem; padding: 4px 8px; }
-/* single checkbox left, album-out checkbox right, same line */
-.flags-row { display: flex; justify-content: space-between; gap: 24px; margin-top: 12px; }
+/* single + album-out checkboxes, same line, left-aligned like Stickers */
+.flags-row { display: flex; justify-content: flex-start; gap: 28px; margin-top: 12px; }
 .flags-row .check-row { margin: 0; }
 
 /* design adjustments (Settings): simple numbers, applied without a new version */
