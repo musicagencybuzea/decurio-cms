@@ -47,7 +47,7 @@ function render_release_page(array $album, bool $preview): never
             <img class="sticker st-<?= e($sticker['size'] ?? '2') ?> pos-<?= e($sticker['position']) ?>" src="<?= e($sticker['image']) ?>" alt="<?= e($sticker['name']) ?>">
         <?php endforeach; ?>
         <?php if (!empty($album['cover_path'])): ?>
-            <img src="<?= e($album['cover_path']) ?>" alt="Cover – <?= e($album['title']) ?>">
+            <img class="cover-img" src="<?= e($album['cover_path']) ?>" alt="Cover – <?= e($album['title']) ?>" loading="lazy">
         <?php else: ?>
             <div class="placeholder cover-placeholder"><?= e($album['title']) ?></div>
         <?php endif; ?>
