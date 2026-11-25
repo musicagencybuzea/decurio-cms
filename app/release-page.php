@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Exclusive per-release page (links.decur.io/XXX).
+ * Exclusive per-release page (links.decur.io/XXX or /XXXA).
  * Renders and exits. $album must be a full albums row, $preview = admin preview mode.
  */
 function render_release_page(array $album, bool $preview): never
@@ -12,16 +12,17 @@ function render_release_page(array $album, bool $preview): never
 
     $links = json_decode($album['links_json'] ?: '[]', true) ?: [];
     $socials = json_decode($album['socials_json'] ?: '[]', true) ?: [];
+    $extraSocials = json_decode($album['extra_socials_json'] ?: '[]', true) ?: [];
     $stickers = album_stickers($album);
     $bg = in_array($album['bg_preset'] ?? 'noir', BG_PRESETS, true) ? $album['bg_preset'] : 'noir';
     $box = in_array($album['box_color'] ?? 'auto', BOX_COLORS, true) ? $album['box_color'] : 'auto';
     $transparent = !empty($album['box_transparent']);
+    $releaseDate = (string)($album['release_date'] ?? '');
 
-    $music = null;
-    if (!empty($album['music_id'])) {
-        $st = db()->prepare('SELECT id, name, file_path FROM tracks WHERE id=?');
-        $st->execute([(int)$album['music_id']]);
-        $music = $st->fetch() ?: null;
+    $baseIcons = ['instagram', 'facebook', 'youtube', 'tiktok']; // screen corners: top-left, bottom-left, top-right, bottom-right
+    $cornerSocials = [];
+    foreach ($baseIcons as $key) {
+        if (!empty($socials[$key])) $cornerSocials[$key] = $socials[$key];
     }
 
     http_response_code(200);
@@ -35,6 +36,7 @@ function render_release_page(array $album, bool $preview): never
 <title><?= e($album['title']) ?> – decurio</title>
 <link rel="stylesheet" href="/assets/css/site.css">
 <link rel="stylesheet" href="/assets/css/release.css">
+<style><?= design_vars($settings) ?></style>
 </head>
 <body class="release-page bg-<?= e($bg) ?>">
 <?php if ($bg === 'blur' && !empty($album['cover_path'])): ?>
@@ -42,88 +44,57 @@ function render_release_page(array $album, bool $preview): never
 <?php endif; ?>
 <?php if ($preview): ?><div class="preview-banner">PREVIEW</div><?php endif; ?>
 
+<nav class="corner-socials">
+<?php foreach ($cornerSocials as $key => $url): ?>
+    <a class="corner-social cs-<?= $key === 'instagram' ? 'tl' : ($key === 'facebook' ? 'bl' : ($key === 'youtube' ? 'tr' : 'br')) ?>"
+       href="<?= e($url) ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= e(ucfirst($key)) ?>"><?= social_icon($key) ?></a>
+<?php endforeach; ?>
+</nav>
+
 <main class="release-wrap">
     <a class="release-brand" href="/">decur.io</a>
 
     <section class="release-cover">
-        <?php if ($music): ?>
-        <div class="cover-player" id="cover-toggle-wrap" data-src="<?= e($music['file_path']) ?>">
-            <button type="button" class="cover-toggle" aria-label="Play or stop">▶</button>
-        </div>
-        <?php endif; ?>
-        <p class="release-trackname"><?= e($music['name'] ?? '') ?></p>
+        <?php foreach ($stickers as $sticker): ?>
+            <img class="sticker st-<?= e($sticker['size'] ?? '2') ?> pos-<?= e($sticker['position']) ?>" src="<?= e($sticker['image']) ?>" alt="<?= e($sticker['name']) ?>">
+        <?php endforeach; ?>
         <?php if (!empty($album['cover_path'])): ?>
             <img src="<?= e($album['cover_path']) ?>" alt="Cover – <?= e($album['title']) ?>">
         <?php else: ?>
             <div class="placeholder cover-placeholder"><?= e($album['title']) ?></div>
         <?php endif; ?>
-        <?php if (!empty($album['is_single'])): ?><p class="release-single">single</p><?php endif; ?>
     </section>
 
     <header class="release-head">
         <h1><?= e($album['title']) ?></h1>
         <?php if (!empty($album['subtitle'])): ?><p class="release-subtitle"><?= e($album['subtitle']) ?></p><?php endif; ?>
         <p class="release-artists"><?= artists_html((string)$album['artists']) ?></p>
+        <?php if (!empty($album['is_single']) || $releaseDate !== ''): ?>
+        <p class="album-flags centered">
+            <?php if (!empty($album['is_single'])): ?><span class="flag">single</span><?php endif; ?>
+            <?php if ($releaseDate !== ''): ?><span class="flag flag-out"><?= e(t('albums.field.album_out')) ?> <?= e(album_out_text($releaseDate)) ?></span><?php endif; ?>
+        </p>
+        <?php endif; ?>
     </header>
 
     <section class="link-box box-<?= e($box) ?><?= $transparent ? ' box-transparent' : '' ?>">
         <?php if ($links): ?>
-            <?php foreach ($links as $i => $link): if (!empty($link['url'])): ?>
-                <a class="rlink<?= $i === 0 ? ' primary' : '' ?>" href="<?= e($link['url']) ?>" target="_blank" rel="noopener noreferrer">
-                    <span><?= e($link['name'] ?? 'Listen') ?></span><span class="arrow">→</span>
-                </a>
-            <?php endif; endforeach; ?>
+            <?php $first = true; foreach ($links as $link): $row = link_row_html((array)$link, $first ? 'primary' : ''); $first = false; echo $row; endforeach; ?>
         <?php else: ?>
             <p class="small">Streaming links coming soon.</p>
         <?php endif; ?>
     </section>
 
-    <?php if ($socials): ?>
+    <?php if ($extraSocials): ?>
     <nav class="socials">
-        <?php foreach (['instagram' => 'Instagram', 'facebook' => 'Facebook', 'tiktok' => 'TikTok', 'youtube' => 'YouTube'] as $key => $label): ?>
-            <?php if (!empty($socials[$key])): ?>
-            <a href="<?= e($socials[$key]) ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= e($label) ?>">
-                <?= social_icon($key) ?>
-            </a>
+        <?php foreach ($extraSocials as $extra): ?>
+            <?php $k = (string)($extra['platform'] ?? ''); if (isset($extra['url']) && $extra['url'] !== ''): ?>
+            <a href="<?= e($extra['url']) ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= e(ucfirst($k)) ?>"><?= social_icon($k) ?></a>
             <?php endif; ?>
         <?php endforeach; ?>
     </nav>
     <?php endif; ?>
 </main>
-<script>
-// 30-second snippet with 1.5 s fade-out
-function decurioSnippet(a, b) {
-    let timer = null, fader = null, endedBound = false;
-    function stop() {
-        if (fader) { clearInterval(fader); fader = null; }
-        a.pause(); try { a.currentTime = 0; } catch (e) {}
-        a.volume = 1; if (b) b.textContent = '▶';
-    }
-    return function toggle() {
-        if (!a.paused) { stop(); return; }
-        if (timer) clearTimeout(timer);
-        a.volume = 1;
-        if (!endedBound) { a.addEventListener('ended', stop); endedBound = true; }
-        a.play().then(() => {
-            if (b) b.textContent = '❚❚';
-            const t0 = Date.now();
-            timer = setTimeout(() => {
-                fader = setInterval(() => {
-                    const left = t0 + 31500 - Date.now();
-                    if (left <= 0) { stop(); return; }
-                    a.volume = Math.max(0, Math.min(1, left / 1500));
-                }, 50);
-            }, 28500);
-        }).catch(() => { if (b) b.textContent = '▶'; });
-    };
-}
-const wrap = document.getElementById('cover-toggle-wrap');
-if (wrap) {
-    const audio = new Audio(wrap.dataset.src);
-    const btn = wrap.querySelector('.cover-toggle');
-    wrap.addEventListener('click', ev => { ev.preventDefault(); decurioSnippet(audio, btn)(); });
-}
-</script>
 </body>
 </html>
     <?php

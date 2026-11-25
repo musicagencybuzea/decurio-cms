@@ -4,10 +4,99 @@ declare(strict_types=1);
 const BOX_COLORS = ['auto', 'noir', 'gris', 'blanc', 'beige', 'rose'];
 const BG_PRESETS = ['noir', 'gris', 'blanc', 'beige', 'rose', 'blur'];
 const STICKER_POSITIONS = ['tl', 'tc', 'tr'];
+const LINK_ACTIONS = ['play', 'buy', 'download', 'visit', 'listen', 'learn', 'subscribe', 'join', 'support'];
 
 function release_url($album): string
 {
     return ($album['release_number'] ?? '') !== '' ? '/' . rawurlencode($album['release_number']) : '';
+}
+
+/** Translated month names for the "ALBUM OUT" mention (no IntlDateFormatter on shared hosting). */
+const MONTH_NAMES = [
+    'en' => ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    'de' => ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+    'fr' => ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+];
+
+/** Format YYYY-MM-DD as "24 April 2026" / "24. April 2026" / "24 avril 2026". */
+function album_out_text(?string $ymd): string
+{
+    if (!$ymd || !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $ymd, $m)) return '';
+    $names = MONTH_NAMES[lang()] ?? MONTH_NAMES['en'];
+    $day = (int)$m[3];
+    $sep = lang() === 'de' ? '. ' : ' ';
+    return $day . $sep . $names[(int)$m[2] - 1] . ' ' . $m[1];
+}
+
+/** Neutral monochrome platform logo (inline SVG, currentColor). Returns '' for unknown platforms. */
+function platform_logo(string $name): string
+{
+    $n = strtolower(trim((string)preg_replace('/[^\p{L}\p{N}]+/u', '', $name)));
+    switch (true) {
+        case str_contains($n, 'spotify'):
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M7.2 9.6c3.4-1 7-.55 9.6.95M7.5 12.6c2.8-.8 5.7-.4 7.9.85M7.9 15.4c2.2-.6 4.5-.3 6.2.7"/></svg>';
+        case str_contains($n, 'apple') || str_contains($n, 'itunes'):
+            return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.6 4.9c.7-.9 1.2-2 1-3.2-1 .1-2.2.7-2.9 1.6-.7.8-1.2 2-1 3.1 1.1 0 2.2-.6 2.9-1.5zM17.7 12.2c0-2.5 2-3.7 2.1-3.8-1.2-1.7-2.9-1.9-3.5-2-1.5-.1-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 2.9-.4 7.2 1.2 9.6.8 1.1 1.7 2.4 3 2.4 1.2 0 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.3.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.6-1-2.6-3.6z"/></svg>';
+        case str_contains($n, 'deezer'):
+            return '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="5" width="3.4" height="3.4"/><rect x="7.5" y="5" width="3.4" height="3.4"/><rect x="13" y="5" width="3.4" height="3.4"/><rect x="18.5" y="5" width="3.4" height="3.4"/><rect x="7.5" y="10.3" width="3.4" height="3.4"/><rect x="13" y="10.3" width="3.4" height="3.4"/><rect x="18.5" y="10.3" width="3.4" height="3.4"/><rect x="13" y="15.6" width="3.4" height="3.4"/><rect x="18.5" y="15.6" width="3.4" height="3.4"/></svg>';
+        case str_contains($n, 'youtube'):
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M10 8.6l6 3.4-6 3.4z" fill="currentColor" stroke="none"/></svg>';
+        case str_contains($n, 'tidal'):
+            return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 6.2l3 3-3 3-3-3zM6 3.2l3 3-3 3-3-3zM18 3.2l3 3-3 3-3-3zM12 12.2l3 3-3 3-3-3z"/></svg>';
+        case str_contains($n, 'amazon'):
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="9.5" r="5.5"/><path d="M12 7.2v4.6l2.6 1.6"/><path d="M4.5 18.2c2.2 1.5 4.8 2.3 7.5 2.3s5.3-.8 7.5-2.3M17.5 17l2-1-.5 2.2"/></svg>';
+        case str_contains($n, 'soundcloud'):
+            return '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="10" width="1.5" height="5.5"/><rect x="4.4" y="8.4" width="1.5" height="7.1"/><rect x="6.8" y="6.8" width="1.5" height="8.7"/><path d="M11 16.7V7.9c.4-.5 1-.7 1.6-.7a5.6 5.6 0 0 1 4.6 2.4c.6-.2 1.3-.2 1.9 0a3.6 3.6 0 0 1 2.7 3.5 3.6 3.6 0 0 1-3.6 3.6z"/></svg>';
+        case str_contains($n, 'bandcamp'):
+            return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.3 5.5H2.5l6.2 13H21.5z"/></svg>';
+        case str_contains($n, 'qobuz'):
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M15.5 15.5L21 21"/></svg>';
+        case str_contains($n, 'beatport'):
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="13.5" r="5.5"/><path d="M12 8V3h6.5"/></svg>';
+        case str_contains($n, 'napster'):
+            return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="7.5" cy="14" r="5.5"/><circle cx="16.5" cy="14" r="5.5"/></svg>';
+    }
+    return '';
+}
+
+/** Translated + whitelisted label for a link action button. */
+function action_label(string $action): string
+{
+    if (in_array($action, LINK_ACTIONS, true)) return mb_strtoupper(t('action.' . $action));
+    if ($action !== '') return mb_strtoupper(mb_substr($action, 0, 12));
+    return mb_strtoupper(t('action.play'));
+}
+
+/** Shared public link row: platform logo (or name) left, fixed-size action button right. */
+function link_row_html(array $link, string $classes = ''): string
+{
+    $url = (string)($link['url'] ?? '');
+    if ($url === '') return '';
+    $name = trim((string)($link['name'] ?? '')) ?: 'Listen';
+    $logo = platform_logo($name);
+    $left = $logo !== ''
+        ? '<span class="pl-logo">' . $logo . '</span><span class="pl-name">' . e($name) . '</span>'
+        : '<span class="pl-name">' . e($name) . '</span>';
+    $action = action_label((string)($link['action'] ?? ''));
+    return '<div class="rlink ' . e($classes) . '">' . $left
+        . '<a class="act" href="' . e($url) . '" target="_blank" rel="noopener noreferrer">' . e($action) . '</a></div>';
+}
+
+/** Design adjustments from Settings, injected as CSS variables (site owner can tweak without a new version). */
+function design_vars(array $s): string
+{
+    $num = static function (string $k, int $d): int { return ($v = (int)round((float)($s[$k] ?? $d))) > 0 ? $v : $d; };
+    $accent = in_array($s['design_accent'] ?? '', ['#141414', '#f0f0f0', '#d6b399', '#f05078'], true) ? $s['design_accent'] : '#f05078';
+    $title = $num('design_main_title', 19);
+    $meta = $num('design_main_meta', 15);
+    $flag = $num('design_flag', 11);
+    $relTop = $num('design_rel_top', 38);
+    $relGap = $num('design_rel_gap', 16);
+    $relTitle = $num('design_rel_title', 24);
+    $relSub = $num('design_rel_sub', 19);
+    $relMeta = $num('design_rel_meta', 14);
+    return ":root{--mp-title:{$title}px;--mp-meta:{$meta}px;--mp-flag:{$flag}px;--accent:{$accent};"
+        . "--rel-top:{$relTop}px;--rel-gap:{$relGap}px;--rel-title:{$relTitle}px;--rel-sub:{$relSub}px;--rel-meta:{$relMeta}px;}";
 }
 
 function admin_page_open(string $title, string $active): void
@@ -109,7 +198,8 @@ function album_stickers(array $album): array
         $r = $map[(int)($slot['sticker_id'] ?? 0)] ?? null;
         if ($r) {
             $pos = in_array($slot['position'] ?? '', STICKER_POSITIONS, true) ? $slot['position'] : 'tl';
-            $out[] = ['image' => $r['image_path'], 'name' => $r['name'], 'position' => $pos];
+            $size = in_array($slot['size'] ?? '', ['1', '2', '3', 's', 'm', 'l'], true) ? (string)$slot['size'] : '2';
+            $out[] = ['image' => $r['image_path'], 'name' => $r['name'], 'position' => $pos, 'size' => $size];
         }
     }
     return $out;

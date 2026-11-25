@@ -47,56 +47,71 @@ function fetch_remote_image(string $url): ?string
     return 'uploads/albums/' . $filename;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    csrf_check();
+/** Validate the catalogue number: 007 (main release) or 007A (linked release, letter suffix). */
+function clean_release_number(string $raw): string
+{
+    if (!preg_match('/^(\d{1,4})([A-Za-z])?$/', $raw, $m)) return '';
+    $number = str_pad($m[1], 3, '0', STR_PAD_LEFT);
+    return isset($m[2]) ? $number . strtoupper($m[2]) : $number;
+}
 
-    $id = (int)($_POST['id'] ?? 0);
-    $title = trim($_POST['title'] ?? '');
-    if ($title === '') fail(t('err.title_required'));
-    $artists = trim($_POST['artists'] ?? '');
-    $subtitle = trim($_POST['subtitle'] ?? '');
-    $isSingle = isset($_POST['is_single']) ? 1 : 0;
+/** Collect the album fields from a POST — shared by the save action and the live preview. */
+function collect_album_post(bool $forPreview): array
+{
+    $out = [];
+    $out['title'] = trim($_POST['title'] ?? '');
+    if ($out['title'] === '' && !$forPreview) fail(t('err.title_required'));
+    $out['subtitle'] = trim($_POST['subtitle'] ?? '');
+    $out['artists'] = trim($_POST['artists'] ?? '');
+    $out['is_single'] = isset($_POST['is_single']) ? 1 : 0;
 
-    $releaseNumber = '';
     $rawNumber = preg_replace('/\s+/', '', (string)($_POST['release_number'] ?? ''));
-    if ($rawNumber !== '') {
-        if (!preg_match('/^\d{1,4}$/', $rawNumber)) fail(t('err.number_invalid'));
-        $releaseNumber = str_pad($rawNumber, 3, '0', STR_PAD_LEFT);
-        $st = db()->prepare('SELECT id FROM albums WHERE release_number=? AND id<>?');
-        $st->execute([$releaseNumber, $id]);
-        if ($st->fetch()) fail(t('err.number_taken'));
-    }
+    $releaseNumber = $rawNumber !== '' ? clean_release_number($rawNumber) : '';
+    if ($rawNumber !== '' && $releaseNumber === '' && !$forPreview) fail(t('err.number_invalid'));
+    $out['release_number'] = $releaseNumber;
 
-    $status = $_POST['status'] ?? 'draft';
-    if (!in_array($status, ['draft', 'published', 'scheduled'], true)) $status = 'draft';
-    $publishAt = null;
-    if ($status === 'scheduled') {
-        $raw = trim((string)($_POST['publish_at'] ?? ''));
-        $ts = $raw === '' ? false : strtotime(str_replace('T', ' ', $raw));
-        if ($ts === false) fail(t('err.publish_at_required'));
-        $publishAt = date('Y-m-d H:i:s', $ts);
-    }
+    $rd = trim((string)($_POST['release_date'] ?? ''));
+    $out['release_date'] = preg_match('/^\d{4}-\d{2}-\d{2}$/', $rd) ? $rd : '';
 
-    // Links: one unified list (name + URL), sent in display order
+    // Links: one unified draggable list, with an optional action word per row
     $links = [];
     $names = $_POST['link_name'] ?? [];
     $urls = $_POST['link_url'] ?? [];
+    $actions = $_POST['link_action'] ?? [];
     foreach ($names as $i => $name) {
         $url = trim((string)($urls[$i] ?? ''));
         $name = trim((string)$name);
-        if ($name !== '' && filter_var($url, FILTER_VALIDATE_URL)) {
-            $links[] = ['name' => $name, 'url' => $url];
-        }
+        if ($name === '' && !filter_var($url, FILTER_VALIDATE_URL)) continue;
+        $action = trim((string)($actions[$i] ?? ''));
+        if ($action === 'custom') $action = trim((string)($_POST['link_action_custom'][$i] ?? ''));
+        if ($action === '') $action = 'play'; // default action
+        if (!in_array($action, LINK_ACTIONS, true) && mb_strlen($action) > 12) $action = mb_substr($action, 0, 12);
+        $links[] = ['name' => $name !== '' ? $name : 'Listen', 'url' => filter_var($url, FILTER_VALIDATE_URL) ? $url : '', 'action' => $action];
     }
+    $links = array_values(array_filter($links, fn($l) => $l['url'] !== ''));
+    $out['links'] = $links;
 
-    // Socials
+    // Socials: four fixed accounts + extra accounts (two artists, two Instagram accounts, ...)
     $socials = [];
     foreach (['instagram', 'facebook', 'tiktok', 'youtube'] as $key) {
         $u = trim((string)($_POST['socials'][$key] ?? ''));
         if ($u !== '' && filter_var($u, FILTER_VALIDATE_URL)) $socials[$key] = $u;
     }
+    $out['socials'] = $socials;
+    $extras = [];
+    $exPlatforms = $_POST['extra_platform'] ?? [];
+    $exUrls = $_POST['extra_url'] ?? [];
+    foreach ($exPlatforms as $i => $platform) {
+        $platform = (string)$platform;
+        $u = trim((string)($exUrls[$i] ?? ''));
+        if (in_array($platform, ['instagram', 'facebook', 'tiktok', 'youtube'], true)
+            && $u !== '' && filter_var($u, FILTER_VALIDATE_URL)) {
+            $extras[] = ['platform' => $platform, 'url' => $u];
+        }
+    }
+    $out['extras'] = $extras;
 
-    // Stickers
+    // Stickers: up to 3, position + size
     $stickersOn = isset($_POST['stickers_enable']);
     $slots = [];
     if ($stickersOn) {
@@ -114,41 +129,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             $used[] = $pos;
-            $slots[] = ['sticker_id' => $sid, 'position' => $pos];
-        }
-        if (!$slots) $stickersOn = false;
-    }
-
-    $bg = in_array($_POST['bg_preset'] ?? 'noir', BG_PRESETS, true) ? $_POST['bg_preset'] : 'noir';
-    $boxColor = in_array($_POST['box_color'] ?? 'auto', BOX_COLORS, true) ? $_POST['box_color'] : 'auto';
-    $boxTransparent = isset($_POST['box_transparent']) ? 1 : 0;
-    $musicId = (int)($_POST['music_id'] ?? 0) ?: null;
-
-    // Cover: manual upload wins; otherwise the Spotify-provided URL, fetched server-side
-    $cover = '';
-    if (!empty($_FILES['cover']['name'])) {
-        $cover = save_uploaded_image($_FILES['cover']);
-    } else {
-        $coverUrl = trim((string)($_POST['cover_url'] ?? ''));
-        if ($coverUrl !== '' && filter_var($coverUrl, FILTER_VALIDATE_URL) && preg_match('#^https?://#', $coverUrl)) {
-            $fetched = fetch_remote_image($coverUrl);
-            if ($fetched === null) fail(t('err.cover_fetch'));
-            $cover = $fetched;
+            $size = (string)($_POST['sticker_size_' . $i] ?? '2');
+            if (!in_array($size, ['1', '2', '3'], true)) $size = '2';
+            $slots[] = ['sticker_id' => $sid, 'position' => $pos, 'size' => $size];
         }
     }
+    $out['stickers_on'] = $stickersOn && $slots;
+    $out['slots'] = $slots;
+
+    $out['bg'] = in_array($_POST['bg_preset'] ?? 'noir', BG_PRESETS, true) ? $_POST['bg_preset'] : 'noir';
+    $out['box_color'] = in_array($_POST['box_color'] ?? 'auto', BOX_COLORS, true) ? $_POST['box_color'] : 'auto';
+    $out['box_transparent'] = isset($_POST['box_transparent']) ? 1 : 0;
+    return $out;
+}
+
+/** Handle the cover: manual upload wins, then the Spotify-provided URL, then the previous cover. */
+function resolve_cover(int $oldId): string
+{
+    if (!empty($_FILES['cover']['name'])) return save_uploaded_image($_FILES['cover']);
+    $coverUrl = trim((string)($_POST['cover_url'] ?? ''));
+    if ($coverUrl !== '' && filter_var($coverUrl, FILTER_VALIDATE_URL) && preg_match('#^https?://#', $coverUrl)) {
+        $fetched = fetch_remote_image($coverUrl);
+        if ($fetched === null) fail(t('err.cover_fetch'));
+        return $fetched;
+    }
+    if ($oldId) {
+        $stmt = db()->prepare('SELECT cover_path FROM albums WHERE id=?');
+        $stmt->execute([$oldId]);
+        return (string)$stmt->fetchColumn();
+    }
+    return '';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['preview_mode'])) {
+    csrf_check();
+
+    $id = (int)($_POST['id'] ?? 0);
+    $p = collect_album_post(false);
+
+    if ($p['release_number'] !== '') {
+        $st = db()->prepare('SELECT id FROM albums WHERE release_number=? AND id<>?');
+        $st->execute([$p['release_number'], $id]);
+        if ($st->fetch()) fail(t('err.number_taken'));
+    }
+
+    $status = $_POST['status'] ?? 'draft';
+    if (!in_array($status, ['draft', 'published', 'scheduled'], true)) $status = 'draft';
+    $publishAt = null;
+    if ($status === 'scheduled') {
+        $raw = trim((string)($_POST['publish_at'] ?? ''));
+        $ts = $raw === '' ? false : strtotime(str_replace('T', ' ', $raw));
+        if ($ts === false) fail(t('err.publish_at_required'));
+        $publishAt = date('Y-m-d H:i:s', $ts);
+    }
+
+    $cover = resolve_cover($id);
 
     if ($id) {
-        $stmt = db()->prepare('SELECT cover_path FROM albums WHERE id=?');
-        $stmt->execute([$id]);
-        $old = $stmt->fetchColumn();
-        if (!$cover) $cover = (string)$old;
-        $q = db()->prepare('UPDATE albums SET title=?,subtitle=?,is_single=?,release_number=?,artists=?,cover_path=?,links_json=?,socials_json=?,sticker_slots_json=?,bg_preset=?,box_color=?,box_transparent=?,music_id=?,publish_at=?,status=?,updated_at=NOW() WHERE id=?');
-        $q->execute([$title, $subtitle, $isSingle, $releaseNumber !== '' ? $releaseNumber : null, $artists, $cover, json_encode($links, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($socials, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), ($stickersOn ? json_encode($slots) : null), $bg, $boxColor, $boxTransparent, $musicId, $publishAt, $status, $id]);
+        $q = db()->prepare('UPDATE albums SET title=?,subtitle=?,is_single=?,release_number=?,artists=?,cover_path=?,links_json=?,socials_json=?,extra_socials_json=?,sticker_slots_json=?,bg_preset=?,box_color=?,box_transparent=?,release_date=?,publish_at=?,status=?,updated_at=NOW() WHERE id=?');
+        $q->execute([$p['title'], $p['subtitle'], $p['is_single'], $p['release_number'] !== '' ? $p['release_number'] : null, $p['artists'], $cover, json_encode($p['links'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['socials'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['extras'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null, ($p['stickers_on'] ? json_encode($p['slots']) : null), $p['bg'], $p['box_color'], $p['box_transparent'], $p['release_date'] !== '' ? $p['release_date'] : null, $publishAt, $status, $id]);
     } else {
         $min = (int)db()->query('SELECT COALESCE(MIN(sort_order),10) FROM albums')->fetchColumn();
-        $q = db()->prepare('INSERT INTO albums(title,subtitle,is_single,release_number,artists,cover_path,links_json,socials_json,sticker_slots_json,bg_preset,box_color,box_transparent,music_id,publish_at,status,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
-        $q->execute([$title, $subtitle, $isSingle, $releaseNumber !== '' ? $releaseNumber : null, $artists, $cover, json_encode($links, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($socials, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), ($stickersOn ? json_encode($slots) : null), $bg, $boxColor, $boxTransparent, $musicId, $publishAt, $status, $min - 10]);
+        $q = db()->prepare('INSERT INTO albums(title,subtitle,is_single,release_number,artists,cover_path,links_json,socials_json,extra_socials_json,sticker_slots_json,bg_preset,box_color,box_transparent,release_date,publish_at,status,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
+        $q->execute([$p['title'], $p['subtitle'], $p['is_single'], $p['release_number'] !== '' ? $p['release_number'] : null, $p['artists'], $cover, json_encode($p['links'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['socials'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['extras'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null, ($p['stickers_on'] ? json_encode($p['slots']) : null), $p['bg'], $p['box_color'], $p['box_transparent'], $p['release_date'] !== '' ? $p['release_date'] : null, $publishAt, $status, $min - 10]);
     }
+    unset($_SESSION['preview_snapshot']); // saved version now matches the preview
     redirect('releases.php?saved=1');
 }
 
@@ -163,16 +208,14 @@ $platforms = db()->query('SELECT * FROM platforms WHERE active=1 ORDER BY sort_o
 $preferred = array_values(array_filter($platforms, fn($p) => !empty($p['preferred'])));
 $others = array_values(array_filter($platforms, fn($p) => empty($p['preferred'])));
 $stickers = db()->query('SELECT id, name, image_path FROM stickers ORDER BY name')->fetchAll();
-$tracks = tracks_for_select();
-$editLinks = $edit['links'] ?? [];
-if (!$edit) $editLinks = [['name' => '', 'url' => '']]; // one empty row for the no-JS fallback
+$editLinks = $edit ? (json_decode($edit['links_json'] ?: '[]', true) ?: []) : [];
 $editSlots = $edit ? (json_decode($edit['sticker_slots_json'] ?: '[]', true) ?: []) : [];
 $socials = $edit ? (json_decode($edit['socials_json'] ?: '[]', true) ?: []) : [];
+$extraSocials = $edit ? (json_decode($edit['extra_socials_json'] ?: '[]', true) ?: []) : [];
 
 admin_page_open(t('albums.manage'), 'albums');
 ?>
 <h1><?= e($edit ? t('albums.edit') : t('albums.manage')) ?></h1>
-<p class="subtitle"><?= e(t('albums.subtitle')) ?></p>
 
 <?php if (isset($_GET['saved'])): ?><p class="notice success"><?= e(t('albums.saved')) ?></p><?php endif; ?>
 
@@ -197,6 +240,10 @@ admin_page_open(t('albums.manage'), 'albums');
 
     <div class="form-box">
         <h2><?= e(t('albums.section.main')) ?></h2>
+        <label for="release_number"><?= e(t('albums.field.number')) ?></label>
+        <input id="release_number" name="release_number" maxlength="5" placeholder="007 or 007A" style="max-width:180px" value="<?= e($edit['release_number'] ?? '') ?>">
+        <p class="small"><?= e(t('albums.field.number_hint')) ?></p>
+
         <label for="title"><?= e(t('albums.field.title')) ?> *</label>
         <input id="title" name="title" required value="<?= e($edit['title'] ?? '') ?>">
         <label for="subtitle"><?= e(t('albums.field.subtitle')) ?></label>
@@ -204,13 +251,15 @@ admin_page_open(t('albums.manage'), 'albums');
         <label for="artists"><?= e(t('albums.field.artists')) ?></label>
         <input id="artists" name="artists" placeholder="A, B, C" value="<?= e($edit['artists'] ?? '') ?>">
 
-        <label for="cover"><?= e(t('albums.field.cover')) ?></label>
-        <input id="cover" type="file" name="cover" accept="image/jpeg,image/png,image/webp">
-        <?php if (!empty($edit['cover_path'])): ?>
-            <p class="small"><?= e(t('albums.field.cover_current')) ?>: <?= e($edit['cover_path']) ?></p>
-        <?php endif; ?>
+        <div class="flags-row">
+            <p class="check-row"><input type="checkbox" id="single" name="is_single" value="1" <?= !empty($edit['is_single']) ? 'checked' : '' ?>><label class="inline" for="single"><?= e(t('albums.field.single')) ?></label></p>
+            <p class="check-row"><input type="checkbox" id="album_out" name="album_out" value="1" <?= !empty($edit['release_date']) ? 'checked' : '' ?>><label class="inline" for="album_out"><?= e(t('albums.field.album_out')) ?></label></p>
+        </div>
+        <div id="album-out-row"<?= !empty($edit['release_date']) ? '' : ' hidden' ?>>
+            <label for="release_date"><?= e(t('albums.field.album_out_date')) ?></label>
+            <input type="date" id="release_date" name="release_date" value="<?= e($edit['release_date'] ?? '') ?>">
+        </div>
 
-        <p class="check-row"><input type="checkbox" id="single" name="is_single" value="1" <?= !empty($edit['is_single']) ? 'checked' : '' ?>><label class="inline" for="single"><?= e(t('albums.field.single')) ?></label></p>
         <p class="check-row"><input type="checkbox" id="stickers_enable" name="stickers_enable" value="1" <?= $editSlots ? 'checked' : '' ?>><label class="inline" for="stickers_enable"><?= e(t('albums.field.stickers_enable')) ?></label></p>
         <div id="sticker-panel"<?= $editSlots ? '' : ' hidden' ?>>
             <?php for ($i = 1; $i <= 3; $i++): $slot = $editSlots[$i - 1] ?? null; ?>
@@ -228,29 +277,55 @@ admin_page_open(t('albums.manage'), 'albums');
                             <option value="<?= e($val) ?>" <?= ($slot['position'] ?? 'tl') === $val ? 'selected' : '' ?>><?= e(t($lab)) ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <label for="sticker_size_<?= $i ?>"><?= e(t('albums.sticker.size')) ?></label>
+                    <select id="sticker_size_<?= $i ?>" name="sticker_size_<?= $i ?>">
+                        <?php foreach ([['1', 'albums.sticker.size.s'], ['2', 'albums.sticker.size.m'], ['3', 'albums.sticker.size.l']] as [$val, $lab]): ?>
+                            <option value="<?= $val ?>" <?= ($slot['size'] ?? '2') === $val ? 'selected' : '' ?>><?= e(t($lab)) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             <?php endfor; ?>
             <p class="small"><a href="library.php?section=stickers"><?= e(t('stickers.add')) ?> &rarr;</a></p>
         </div>
 
-        <h2><?= e(t('albums.links.preferred')) ?></h2>
+        <label for="cover"><?= e(t('albums.field.cover')) ?></label>
+        <input id="cover" type="file" name="cover" accept="image/jpeg,image/png,image/webp">
+        <?php if (!empty($edit['cover_path'])): ?>
+            <p class="small"><?= e(t('albums.field.cover_current')) ?>: <?= e($edit['cover_path']) ?></p>
+        <?php endif; ?>
+    </div>
+
+    <div class="form-box">
+        <h2><?= e(t('albums.links.heading')) ?></h2>
         <div class="chip-list">
             <?php foreach ($preferred as $p): ?>
                 <button type="button" class="chip" data-name="<?= e($p['name']) ?>"><?= e($p['name']) ?></button>
             <?php endforeach; ?>
         </div>
-        <p class="small"><strong><?= e(t('albums.links.selected')) ?></strong></p>
         <div id="link-list">
             <?php foreach ($editLinks as $l): ?>
                 <div class="link-item" data-name="<?= e($l['name'] ?? '') ?>">
                     <span class="drag-cell">&#8942;&#8942;</span>
                     <input name="link_name[]" placeholder="<?= e(t('link.placeholder.name')) ?>" value="<?= e($l['name'] ?? '') ?>">
                     <input type="url" name="link_url[]" placeholder="https://&hellip;" value="<?= e($l['url'] ?? '') ?>">
+                    <?php $act = (string)($l['action'] ?? ''); $isCustom = $act !== '' && !in_array($act, LINK_ACTIONS, true); ?>
+                    <span class="action-cell" data-act="<?= e($isCustom ? 'custom' : $act) ?>">
+                        <select name="link_action[]">
+                            <?php foreach ([['', t('action.play')], ...array_map(fn($a) => [$a, t('action.' . $a)], LINK_ACTIONS), ['custom', t('action.custom')]] as [$val, $lab]): if ($val === '') continue; ?>
+                                <option value="<?= e($val) ?>" <?= ($isCustom ? 'custom' : $act) === $val ? 'selected' : '' ?>><?= e($lab) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <input type="text" name="link_action_custom[]" class="action-custom" placeholder="<?= e(t('action.word')) ?>" value="<?= e($isCustom ? $act : '') ?>"<?= ($isCustom ? '' : ' hidden') ?>>
+                    </span>
                     <button type="button" class="remove-row" title="<?= e(t('albums.links.remove')) ?>">&times;</button>
                 </div>
             <?php endforeach; ?>
         </div>
-        <div class="find-row" style="margin-top:10px">
+        <p class="form-actions link-tools">
+            <button type="button" id="toggle-other"><?= e(t('albums.links.other_toggle')) ?></button>
+            <button type="button" id="toggle-custom"><?= e(t('albums.links.custom_toggle')) ?></button>
+        </p>
+        <div class="find-row" id="other-platform-row" hidden>
             <select id="other-platform">
                 <option value="">&mdash;</option>
                 <?php foreach ($others as $o): ?>
@@ -258,17 +333,12 @@ admin_page_open(t('albums.manage'), 'albums');
                 <?php endforeach; ?>
             </select>
             <button type="button" id="add-other"><?= e(t('albums.links.add_platform')) ?></button>
-            <button type="button" id="add-custom"><?= e(t('albums.field.add_link')) ?></button>
         </div>
     </div>
 
     <div class="form-box">
         <h2><?= e(t('albums.section.exclusive')) ?></h2>
-        <label for="release_number"><?= e(t('albums.field.number')) ?></label>
-        <input id="release_number" name="release_number" maxlength="4" inputmode="numeric" placeholder="007" style="max-width:180px" value="<?= e($edit['release_number'] ?? '') ?>">
-        <p class="small"><?= e(t('albums.field.number_hint')) ?></p>
-
-        <h2><?= e(t('albums.field.socials')) ?></h2>
+        <h3><?= e(t('albums.field.socials')) ?></h3>
         <div class="social-grid">
             <?php foreach (['instagram' => 'albums.social.instagram', 'facebook' => 'albums.social.facebook', 'tiktok' => 'albums.social.tiktok', 'youtube' => 'albums.social.youtube'] as $key => $lab): ?>
                 <div>
@@ -277,18 +347,22 @@ admin_page_open(t('albums.manage'), 'albums');
                 </div>
             <?php endforeach; ?>
         </div>
-
-        <h2><?= e(t('albums.field.music')) ?></h2>
-        <label for="music_id"><?= e(t('albums.field.music')) ?></label>
-        <select id="music_id" name="music_id">
-            <option value="0"><?= e(t('albums.music.none')) ?></option>
-            <?php foreach ($tracks as $tr2): ?>
-                <option value="<?= (int)$tr2['id'] ?>" <?= (int)($edit['music_id'] ?? 0) === (int)$tr2['id'] ? 'selected' : '' ?>><?= e($tr2['name']) ?></option>
+        <div id="extra-socials">
+            <?php foreach ($extraSocials as $extra): ?>
+                <div class="extra-social">
+                    <select name="extra_platform[]">
+                        <?php foreach (['instagram', 'facebook', 'youtube', 'tiktok'] as $p2): ?>
+                            <option value="<?= e($p2) ?>" <?= ($extra['platform'] ?? '') === $p2 ? 'selected' : '' ?>><?= e(t('albums.social.' . $p2)) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <input type="url" name="extra_url[]" placeholder="https://&hellip;" value="<?= e($extra['url'] ?? '') ?>">
+                    <button type="button" class="remove-row">&times;</button>
+                </div>
             <?php endforeach; ?>
-        </select>
-        <p class="small"><a href="library.php?section=music"><?= e(t('albums.music.manage')) ?></a></p>
+        </div>
+        <p class="check-row"><button type="button" id="add-social" class="linklike">&plus; <?= e(t('albums.field.more_socials')) ?></button></p>
 
-        <h2><?= e(t('albums.field.appearance')) ?></h2>
+        <h3><?= e(t('albums.field.appearance')) ?></h3>
         <label><?= e(t('albums.field.background')) ?></label>
         <div class="swatches">
             <?php foreach ([['noir', 'albums.bg.black', '#141414'], ['gris', 'albums.bg.grey', '#4d4d4d'], ['blanc', 'albums.bg.white', '#f0f0f0'], ['beige', 'albums.bg.beige', '#d6b399'], ['rose', 'albums.bg.rose', '#f05078'], ['blur', 'albums.bg.blur', null]] as [$val, $lab, $color]): ?>
@@ -309,11 +383,9 @@ admin_page_open(t('albums.manage'), 'albums');
         </select>
         <p class="check-row"><input type="checkbox" id="box_transparent" name="box_transparent" value="1" <?= !empty($edit['box_transparent']) ? 'checked' : '' ?>><label class="inline" for="box_transparent"><?= e(t('albums.box.transparent')) ?></label></p>
 
-        <?php if ($edit): ?>
-            <p class="form-actions"><a class="btn" href="../?preview=<?= (int)$edit['id'] ?>&lang=<?= e(lang()) ?>" target="_blank" rel="noopener"><?= e(t('albums.preview')) ?> &nearr;</a></p>
-        <?php else: ?>
-            <p class="small"><?= e(t('albums.preview')) ?>: <?= e(t('albums.preview_after_save')) ?></p>
-        <?php endif; ?>
+        <p class="form-actions">
+            <button type="submit" name="preview_mode" value="1" formaction="preview.php" formmethod="post" target="_blank"><?= e(t('albums.preview')) ?> &nearr;</button>
+        </p>
     </div>
 
     <div class="form-box">
@@ -347,9 +419,34 @@ admin_page_open(t('albums.manage'), 'albums');
 const CSRF = <?= json_encode(csrf_token()) ?>;
 const LANG = <?= json_encode(lang()) ?>;
 
-// ---------- link list: chips + dropdown + custom, all draggable ----------
+// ---------- link list: chips, other platforms, custom links, action words, draggable ----------
 const linkList = document.getElementById('link-list');
-function makeLinkRow(name, url) {
+const ACTION_OPTIONS = <?= json_encode(array_merge(LINK_ACTIONS, ['custom'])) ?>;
+
+function actionCellHTML(action) {
+    const isCustom = action !== '' && !ACTION_OPTIONS.includes(action);
+    const sel = ACTION_OPTIONS.includes(action) ? action : (isCustom ? 'custom' : '');
+    let html = '<span class="action-cell" data-act="' + (isCustom ? 'custom' : action) + '">';
+    html += '<select name="link_action[]">';
+    ACTION_OPTIONS.forEach(o => {
+        html += '<option value="' + o + '"' + (sel === o ? ' selected' : '') + '>' + T_action(o) + '</option>';
+    });
+    html += '</select>';
+    html += '<input type="text" name="link_action_custom[]" class="action-custom" placeholder="' + <?= json_encode(t('action.word')) ?> + '" value="' + (isCustom ? action : '') + '"' + (isCustom ? '' : ' hidden') + '>';
+    html += '</span>';
+    return html;
+}
+function bindActionCell(cell) {
+    const sel = cell.querySelector('select');
+    const custom = cell.querySelector('.action-custom');
+    sel.addEventListener('change', () => {
+        custom.hidden = sel.value !== 'custom';
+        cell.dataset.act = sel.value;
+    });
+}
+document.querySelectorAll('.action-cell').forEach(bindActionCell);
+
+function makeLinkRow(name, url, action) {
     const row = document.createElement('div');
     row.className = 'link-item';
     row.dataset.name = name;
@@ -357,19 +454,21 @@ function makeLinkRow(name, url) {
         '<span class="drag-cell">\u22ee\u22ee</span>' +
         '<input name="link_name[]" placeholder="' + <?= json_encode(t('link.placeholder.name')) ?> + '" value="">' +
         '<input type="url" name="link_url[]" placeholder="https://\u2026" value="">' +
+        actionCellHTML(action || '') +
         '<button type="button" class="remove-row" title="' + <?= json_encode(t('albums.links.remove')) ?> + '">\u00d7</button>';
     row.children[1].value = name;
     row.children[2].value = url;
     row.querySelector('.remove-row').addEventListener('click', () => {
         row.remove(); syncChips();
     });
+    bindActionCell(row.querySelector('.action-cell'));
     linkList.appendChild(row);
     if (!window.Sortable) row.querySelector('.drag-cell').append(...arrowsFor(row));
     return row;
 }
 function rowByName(name) {
     return [...linkList.querySelectorAll('.link-item')].find(
-        r => r.dataset.name.toLowerCase() === name.toLowerCase()
+        r => r.dataset.name.toLowerCase() === name.toLowerCase() && r.dataset.name !== ''
     );
 }
 function syncChips() {
@@ -382,11 +481,19 @@ document.querySelectorAll('.chip').forEach(ch => {
         const existing = rowByName(ch.dataset.name);
         if (existing) { existing.remove(); } else {
             makeLinkRow(ch.dataset.name, '');
-            const url = linkList.lastElementChild.querySelector('input[type=url]');
-            url.focus();
+            linkList.lastElementChild.querySelector('input[type=url]').focus();
         }
         syncChips();
     });
+});
+// "Other platforms" and "Custom link" stay folded away until needed
+document.getElementById('toggle-other').addEventListener('click', () => {
+    const row2 = document.getElementById('other-platform-row');
+    row2.hidden = !row2.hidden;
+});
+document.getElementById('toggle-custom').addEventListener('click', () => {
+    const row2 = makeLinkRow('', '');
+    row2.querySelector('input[name="link_name[]"]').focus();
 });
 document.getElementById('add-other').addEventListener('click', () => {
     const sel = document.getElementById('other-platform');
@@ -394,14 +501,32 @@ document.getElementById('add-other').addEventListener('click', () => {
     if (!rowByName(sel.value)) makeLinkRow(sel.value, '');
     sel.value = ''; syncChips();
 });
-document.getElementById('add-custom').addEventListener('click', () => {
-    makeLinkRow('', '').querySelector('input[name="link_name[]"]').focus();
-});
-// server-rendered rows: bind their remove buttons
+// server-rendered rows: bind remove + action buttons
 linkList.querySelectorAll('.link-item').forEach(it => {
     it.querySelector('.remove-row').addEventListener('click', () => { it.remove(); syncChips(); });
 });
 syncChips();
+
+// ---------- extra social accounts ----------
+document.getElementById('add-social').addEventListener('click', () => {
+    const wrap = document.getElementById('extra-socials');
+    const row2 = document.createElement('div');
+    row2.className = 'extra-social';
+    row2.innerHTML =
+        '<select name="extra_platform[]">' +
+        <?= json_encode(implode('', array_map(
+            fn($p) => '<option value="' . $p . '">' . e(t('albums.social.' . $p)) . '</option>',
+            ['instagram', 'facebook', 'youtube', 'tiktok']
+        ))) ?> +
+        '</select>' +
+        '<input type="url" name="extra_url[]" placeholder="https://\u2026">' +
+        '<button type="button" class="remove-row">\u00d7</button>';
+    row2.querySelector('.remove-row').addEventListener('click', () => row2.remove());
+    wrap.appendChild(row2);
+});
+document.querySelectorAll('#extra-socials .remove-row').forEach(b => {
+    b.addEventListener('click', () => b.parentNode.remove());
+});
 
 // drag & drop for the links (fallback arrows if the CDN is unreachable)
 function arrowsFor(item) {
@@ -417,9 +542,17 @@ if (window.Sortable) {
     linkList.querySelectorAll('.link-item').forEach(it => it.querySelector('.drag-cell').append(...arrowsFor(it)));
 }
 
-// platform checkboxes outside this page no longer exist; keep stickers panel toggle
+// stickers panel + album-out date toggles
 const stk = document.getElementById('stickers_enable');
 if (stk) stk.addEventListener('change', () => { document.getElementById('sticker-panel').hidden = !stk.checked; });
+const ao = document.getElementById('album_out');
+if (ao) ao.addEventListener('change', () => { document.getElementById('album-out-row').hidden = !ao.checked; });
+if (window.flatpickr && document.getElementById('release_date')) {
+    window.flatpickr('#release_date', {
+        dateFormat: 'Y-m-d',
+        locale: LANG === 'fr' ? 'fr' : (LANG === 'de' ? 'de' : 'default')
+    });
+}
 
 // scheduled date calendar (native fallback otherwise)
 if (window.flatpickr) {
@@ -453,7 +586,7 @@ findBtn.addEventListener('click', async () => {
             findStatus.textContent = '\u2713 ' + data.album.title + ' \u2014 ' + data.album.artists;
             data.results.forEach(r => {
                 if (!rowByName(r.platform)) {
-                    makeLinkRow(r.platform, r.url);
+                    makeLinkRow(r.platform, r.url, 'play');
                 } else {
                     rowByName(r.platform).querySelector('input[type=url]').value = r.url;
                 }
@@ -475,5 +608,21 @@ document.getElementById('use-cover').addEventListener('click', () => {
     document.getElementById('cover_url').value = srcUrl;
     document.getElementById('find-status').textContent = <?= json_encode(t('find.cover_set')) ?>;
 });
+
+// translated action labels for the JS-generated dropdown (no inline PHP inside loops)
+function T_action(o) {
+    return {
+        play: <?= json_encode(t('action.play')) ?>,
+        buy: <?= json_encode(t('action.buy')) ?>,
+        download: <?= json_encode(t('action.download')) ?>,
+        visit: <?= json_encode(t('action.visit')) ?>,
+        listen: <?= json_encode(t('action.listen')) ?>,
+        learn: <?= json_encode(t('action.learn')) ?>,
+        subscribe: <?= json_encode(t('action.subscribe')) ?>,
+        join: <?= json_encode(t('action.join')) ?>,
+        support: <?= json_encode(t('action.support')) ?>,
+        custom: <?= json_encode(t('action.custom')) ?>
+    }[o] || o;
+}
 </script>
 <?php admin_page_close();

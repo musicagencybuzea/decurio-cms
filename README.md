@@ -1,7 +1,17 @@
-# decurio CMS – version 1.3 (admin réorganisée, bibliothèque unifiée, pochette automatique)
+# decurio CMS – version 1.4 (phase 1 : design réglable, boutons d'action, aperçu en direct) (admin réorganisée, bibliothèque unifiée, pochette automatique)
 
 CMS PHP/MySQL autonome installé sur **http​s://links.decur.io** et administré via FTP (FileZilla).
 Page publique en anglais ; administration en anglais, français ou allemand (EN par défaut).
+
+## Nouveautés v1.4 (phase 1)
+
+- **Corrections** : stickers désormais **entièrement visibles** (la vraie cause : la règle « image de pochette » s'appliquait aussi aux stickers — corrigé), taille S/M/L réglable par slot ; **Aperçu en direct** montrant exactement le formulaire en cours (même non enregistré, pochette comprise) dans un nouvel onglet ; **réorganisation sans scroll vers le haut** (envoi en arrière-plan, la page ne se recharge plus).
+- **Main page** : titres/sous-titres/artistes **plus grands** ; sous-titre **même taille que le titre, sans majuscules** ; mention **SINGLE** et nouvelle mention **ALBUM OUT + date calendaire** (case + calendrier) en **rose**, SINGLE à gauche / ALBUM OUT à droite sur la même ligne.
+- **Page exclusive (Release Page)** : espacements réduits (haut de page, cover ↔ titres, titres ↔ boîte de liens) ; **bouton d'action par lien** façon Hypeddit : logo monochrome neutre de la plateforme (ou son nom si inconnu) à gauche, **bouton à taille fixe** à droite (PLAY, BUY, DOWNLOAD, LISTEN, LEARN MORE… + CUSTOM avec mot libre, 10 lettres max) ; **musique sur la page exclusive supprimée** (celle de la main page reste) ; **réseaux sociaux aux coins fixes** (Instagram haut-gauche, Facebook bas-gauche, YouTube haut-droit, TikTok bas-droit) + bouton **« Add social media link »** pour plusieurs comptes par plateforme ; **stickers** aussi affichés sur la page release.
+- **Admin (Nouvelle release)** : **numéro de catalogue en premier champ** (« Catalogue number ») avec **format 007** (release principale) ou **007A** (release rattachée, ex. links.decur.io/007A) ; sections renommées **Informations / Release Page / Publication** ; liens : jetons des plateformes préférées conservés, boutons **« Other platforms »** et **« Custom link »** dépliants (le champ vide et les menus permanents disparaissent de la vue principale) ; **choix du mot d'action** pour chaque lien.
+- **Paramètres** : nouvelle section **Design** (tailles en pixels, couleur de mise en avant) appliquée **immédiatement, sans nouvelle version du site** ; champ **Imprint URL** (lien en bas de la main page, défaut https://www.decur.io/imprint/).
+- **Langues** dans l'ordre **EN / DE / FR** ; onglets renommés : **New release** (creation) et **Albums** (liste) — EN · **Nouvelle sortie / Albums** — FR · **Neue Veröffentlichung / Alben** — DE ; sous-titres de pages retirés.
+- **Migration SQL** : importer `database/migration-v14.sql` (2 colonnes : date d'album out, réseaux sociaux supplémentaires).
 
 ## Nouveautés v1.3
 

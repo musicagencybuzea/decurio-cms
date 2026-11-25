@@ -3,14 +3,36 @@ declare(strict_types=1);
 require __DIR__ . '/app/bootstrap.php';
 require __DIR__ . '/app/ui.php';
 
-// Routing: links.decur.io/XXX (.htaccess rewrites to ?num=XXX) + admin preview (?preview=ID)
+// Routing: links.decur.io/XXX (or XXXA for a linked release) + admin live preview (?preview)
 if (isset($_GET['preview'])) {
-    require_login();
-    if (logged_in()) {
-        $q = db()->prepare('SELECT * FROM albums WHERE id=?');
-        $q->execute([(int)$_GET['preview']]);
-        $previewAlbum = $q->fetch();
+    if (logged_in() && !empty($_SESSION['preview_snapshot'])) {
+        $snap = $_SESSION['preview_snapshot'];
+        $previewAlbum = null;
+        if (!empty($snap['id'])) {
+            $q = db()->prepare('SELECT * FROM albums WHERE id=?');
+            $q->execute([(int)$snap['id']]);
+            $previewAlbum = $q->fetch();
+        }
+        // Live preview: the form state as it is on screen right now, saved or not
+        $fields = ['title', 'subtitle', 'artists', 'release_number', 'links_json', 'socials_json',
+                   'extra_socials_json', 'sticker_slots_json', 'bg_preset', 'box_color', 'box_transparent',
+                   'release_date', 'status', 'publish_at'];
+        if (!$previewAlbum && !empty($snap['title'])) {
+            $previewAlbum = array_fill_keys([
+                'id', 'title', 'subtitle', 'is_single', 'release_number', 'artists', 'cover_path', 'links_json',
+                'socials_json', 'extra_socials_json', 'sticker_slots_json', 'bg_preset', 'box_color',
+                'box_transparent', 'music_id', 'publish_at', 'status', 'sort_order', 'created_at', 'updated_at', 'release_date'], '');
+            $previewAlbum['id'] = 0;
+            $previewAlbum['is_single'] = 0;
+            $previewAlbum['box_transparent'] = 0;
+            $previewAlbum['music_id'] = null;
+        }
         if ($previewAlbum) {
+            foreach ($fields as $f) {
+                if (array_key_exists($f, $snap)) $previewAlbum[$f] = $snap[$f];
+            }
+            if (!empty($snap['cover_path'])) $previewAlbum['cover_path'] = $snap['cover_path']; // freshly chosen cover
+            $previewAlbum['status'] = 'published'; // preview always renders like a live page
             require __DIR__ . '/app/release-page.php';
             render_release_page($previewAlbum, true);
         }
@@ -19,7 +41,7 @@ if (isset($_GET['preview'])) {
 }
 
 if (isset($_GET['num'])) {
-    $num = trim((string)$_GET['num']);
+    $num = strtoupper(trim((string)$_GET['num']));
     $q = db()->prepare('SELECT * FROM albums WHERE release_number=?');
     $q->execute([$num]);
     $album = $q->fetch();
@@ -60,6 +82,7 @@ $favicon = $settings['favicon_file'] ?? '';
 <?php if (!empty($favicon)): ?><link rel="icon" href="<?= e($favicon) ?>"><?php endif; ?>
 <title><?= e($settings['site_title'] ?? 'decurio – records & links') ?></title>
 <link rel="stylesheet" href="assets/css/site.css">
+<style><?= design_vars($settings) ?></style>
 </head>
 <body>
 <main class="page">
@@ -86,34 +109,40 @@ $favicon = $settings['favicon_file'] ?? '';
         <div class="card">
             <div class="face front">
                 <?php foreach ($stickers as $sticker): ?>
-                    <img class="sticker pos-<?= e($sticker['position']) ?>" src="<?= e($sticker['image']) ?>" alt="<?= e($sticker['name']) ?>">
+                    <img class="sticker st-<?= e($sticker['size'] ?? '2') ?> pos-<?= e($sticker['position']) ?>" src="<?= e($sticker['image']) ?>" alt="<?= e($sticker['name']) ?>">
                 <?php endforeach; ?>
                 <?php if ($album['cover_path']): ?>
-                    <img src="<?= e($album['cover_path']) ?>" alt="Cover – <?= e($album['title']) ?>" loading="lazy">
+                    <img class="cover-img" src="<?= e($album['cover_path']) ?>" alt="Cover – <?= e($album['title']) ?>" loading="lazy">
                 <?php else: ?>
                     <div class="placeholder"><?= e($album['title']) ?></div>
                 <?php endif; ?>
                 <div class="hint">listen</div>
             </div>
             <div class="face back">
-                <?php foreach ($links as $i => $link): if (!empty($link['url'])): ?>
-                    <a class="btn <?= $i === 0 ? 'primary' : '' ?>" href="<?= e($link['url']) ?>" target="_blank" rel="noopener noreferrer">
-                        <span><?= e($link['name'] ?? 'Listen') ?></span><span class="arrow">→</span>
-                    </a>
-                <?php endif; endforeach; ?>
+                <?php foreach ($links as $i => $link): ?>
+                    <?= link_row_html($link, $i === 0 ? 'primary' : '') ?>
+                <?php endforeach; ?>
             </div>
         </div>
         <?php if ($pageUrl !== ''): ?><a class="album-meta" href="<?= e($pageUrl) ?>"><?php else: ?><div class="album-meta"><?php endif; ?>
             <h2 class="album-title"><?= e($album['title']) ?></h2>
             <?php if (!empty($album['subtitle'])): ?><p class="album-subtitle"><?= e($album['subtitle']) ?></p><?php endif; ?>
             <p class="album-artists"><?= artists_html((string)$album['artists']) ?></p>
-            <?php if (!empty($album['is_single'])): ?><p class="album-single">single</p><?php endif; ?>
+            <?php if (!empty($album['is_single']) || !empty($album['release_date'])): ?>
+            <p class="album-flags">
+                <?php if (!empty($album['is_single'])): ?><span class="flag">single</span><?php endif; ?>
+                <?php if (!empty($album['release_date'])): ?><span class="flag flag-out"><?= e(t('albums.field.album_out')) ?> <?= e(album_out_text($album['release_date'])) ?></span><?php endif; ?>
+            </p>
+            <?php endif; ?>
         <?php if ($pageUrl !== ''): ?></a><?php else: ?></div><?php endif; ?>
     </article>
 <?php endforeach; ?>
 </section>
 
-<footer><a href="https://decur.io">decur.io</a> · <?= e($settings['footer_text'] ?? 'we record, we publish, we discover') ?></footer>
+<footer><a href="https://decur.io">decur.io</a> · <?= e($settings['footer_text'] ?? 'we record, we publish, we discover') ?>
+<?php $imprintUrl = trim((string)($settings['imprint_url'] ?? '')); if ($imprintUrl !== ''): ?>
+    · <a class="imprint" href="<?= e($imprintUrl) ?>" target="_blank" rel="noopener"><?= e(t('site.imprint')) ?></a>
+<?php endif; ?></footer>
 
 <?php if ($welcomeTrack): ?>
 <div class="welcome-player" id="welcome-player"
