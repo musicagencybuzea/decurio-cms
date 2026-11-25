@@ -118,7 +118,7 @@ $favicon = $settings['favicon_file'] ?? '';
                 <?php endif; ?>
                 <div class="hint">listen</div>
             </div>
-            <div class="face back">
+            <?php $linkCount = count($links); ?><div class="face back<?= $linkCount > 6 ? ' links-lots' : ($linkCount > 4 ? ' links-many' : '') ?>">
                 <?php foreach ($links as $i => $link): ?>
                     <?= link_row_html($link, $i === 0 ? 'primary' : '') ?>
                 <?php endforeach; ?>
@@ -129,7 +129,7 @@ $favicon = $settings['favicon_file'] ?? '';
             <?php if (!empty($album['subtitle'])): ?><p class="album-subtitle"><?= e($album['subtitle']) ?></p><?php endif; ?>
             <p class="album-artists"><?= artists_html((string)$album['artists']) ?></p>
             <?php if (!empty($album['is_single']) || !empty($album['release_date'])): ?>
-            <p class="album-flags">
+            <p class="album-flags stacked">
                 <?php if (!empty($album['is_single'])): ?><span class="flag">single</span><?php endif; ?>
                 <?php if (!empty($album['release_date'])): ?><span class="flag flag-out"><?= e(t('albums.field.album_out')) ?> <?= e(album_out_text($album['release_date'])) ?></span><?php endif; ?>
             </p>

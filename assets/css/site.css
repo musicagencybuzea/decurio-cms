@@ -81,7 +81,8 @@ header { text-align: center; margin-bottom: 56px; }
 /* only the COVER fills the card — the stickers are separate layered images
    (v1.4 bugfix: previously this selector also caught .sticker imgs, cropping them into a zoomed middle) */
 .face.front img.cover-img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.9); }
-.face.front img.sticker { width: auto; }
+/* v1.4 fix: la règle "img.sticker { width:auto }" était supprimée — elle écrasait les tailles S/M/L
+   (spécificité plus forte) sur la main page uniquement → stickers à taille naturelle = géants */
 .placeholder {
   flex: 1;
   display: flex;
@@ -143,6 +144,16 @@ header { text-align: center; margin-bottom: 56px; }
   transition: background .2s, color .2s, border-color .2s;
 }
 .rlink .act:hover, .rlink.primary .act { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+/* many links: the back of the cover compacts automatically so that ALL rows fit */
+.face.back.links-many { padding: 10px 8px; gap: 4px; }
+.face.back.links-many .rlink { padding: 6px 7px; }
+.face.back.links-many .pl-logo svg { width: 13px; height: 13px; }
+.face.back.links-many .rlink .act { width: 6.4em; padding: 5px 3px; font-size: .55rem; }
+.face.back.links-lots { padding: 7px 6px; gap: 2px; }
+.face.back.links-lots .rlink { padding: 4px 6px; }
+.face.back.links-lots .rlink .act { width: 5.6em; padding: 4px 2px; font-size: .5rem; letter-spacing: .1em; }
+.face.back.links-lots .rlink .pl-name { font-size: .56rem; letter-spacing: .12em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.face.back.links-lots .pl-logo svg { width: 11px; height: 11px; }
 
 .hint {
   position: absolute;
@@ -213,6 +224,8 @@ footer a { color: var(--accent); text-decoration: none; }
   text-transform: uppercase;
 }
 .album-flags.centered { justify-content: center; }
+/* main page: SINGLE on one line, ALBUM OUT + date on its own line below */
+.album-flags.stacked { flex-direction: column; align-items: flex-start; gap: 3px; }
 .album-flags .flag { color: var(--accent); }
 
 a.album-meta { text-decoration: none; color: inherit; display: block; transition: color .2s; }

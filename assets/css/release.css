@@ -100,6 +100,11 @@ body.release-page {
 }
 .release-artists { margin-top: 5px; font-size: var(--rel-meta, 14px); opacity: .62; letter-spacing: .04em; }
 .release-head .album-flags { justify-content: center; margin-top: 9px; }
+/* v1.4 fix: neutralise les marges par défaut des <p> à l'intérieur du bloc titre —
+   grâce à cela, "Release page — gap between the blocks" contrôle réellement tout l'espace */
+.release-head .release-subtitle,
+.release-head .release-artists,
+.release-head .album-flags { margin-bottom: 0; }
 
 /* ---------- link box ---------- */
 .link-box {
@@ -133,6 +138,24 @@ body.release-page {
   border-color: rgba(240, 240, 240, .3);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+}
+/* v1.4 fix: readability on LIGHT backgrounds — a transparent box lets the light background
+   through, so the text (and especially the platform names) must be dark, regardless of the
+   selected box colour */
+.bg-blanc .link-box.box-transparent,
+.bg-beige .link-box.box-transparent,
+.bg-rose .link-box.box-transparent,
+.bg-blanc .link-box.box-transparent.box-noir,
+.bg-blanc .link-box.box-transparent.box-gris,
+.bg-beige .link-box.box-transparent.box-noir,
+.bg-beige .link-box.box-transparent.box-gris,
+.bg-rose .link-box.box-transparent.box-noir,
+.bg-rose .link-box.box-transparent.box-gris {
+  color: #141414 !important;
+  background: rgba(240, 240, 240, .14) !important;
+  border-color: rgba(20, 20, 20, .3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .bg-noir .box-transparent.box-noir, .bg-blur .box-transparent.box-noir { background: rgba(20, 20, 20, .55) !important; }
 .bg-noir .box-transparent.box-gris, .bg-blur .box-transparent.box-gris { background: rgba(77, 77, 77, .55) !important; }
