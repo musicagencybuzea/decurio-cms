@@ -1,10 +1,16 @@
 <?php
 declare(strict_types=1);
 
+date_default_timezone_set('Europe/Berlin');
+
+// HTTPS can be terminated by a proxy (shared hosting) — trust both signals
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax',
-    'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+    'secure' => $isHttps,
 ]);
 session_start();
 

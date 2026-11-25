@@ -180,3 +180,175 @@ td.status { letter-spacing: .06em; }
 .login-panel .subtitle { margin: 6px 0 20px; text-align: center; color: var(--sand); font-size: .7rem; letter-spacing: .3em; text-transform: uppercase; font-family: var(--font-head); }
 .login-panel .langs { justify-content: center; margin-bottom: 8px; }
 .login-panel .notice { margin: 16px 0 0; }
+
+/* ---------- v1.2 ---------- */
+
+/* automatic link finder */
+.find-panel {
+  border: 1px dashed var(--line-strong);
+  padding: 16px 18px 18px;
+  margin: 0 0 26px;
+  background: rgba(214, 179, 153, .04);
+}
+.find-panel h2 { margin: 0 0 10px; }
+.find-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.find-row input { flex: 1; min-width: 220px; margin: 0; }
+.find-results { margin: 12px 0 0; font-size: .82rem; }
+.find-results .ok { color: var(--sand); }
+.find-results .err { color: var(--accent); }
+.find-status { margin: 10px 0 0; font-size: .8rem; color: var(--muted); }
+
+/* platform checklist (streaming links) */
+.platform-list { margin: 6px 0 10px; }
+.platform-row {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr) minmax(160px, 1.8fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px dotted var(--line);
+}
+.platform-row input[type="checkbox"] { width: auto; margin: 0; }
+.platform-row .pname { font-size: .82rem; color: var(--paper); }
+.platform-row input[type="url"], .platform-row input[type="text"] { padding: 8px 10px; }
+.platform-pref { font: 400 .52rem var(--font-head); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+
+/* custom links + socials */
+.link-row, .social-grid { display: grid; gap: 10px; }
+.link-row { grid-template-columns: minmax(120px, 1fr) minmax(160px, 1.8fr); margin-bottom: 8px; }
+.social-grid { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 640px) { .social-grid { grid-template-columns: 1fr; } .platform-row { grid-template-columns: auto 1fr; } .platform-row input { grid-column: span 2; } }
+
+/* inline checkbox lines ("Single: yes", transparency, stickers master switch) */
+.check-row, label.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 16px 18px 0 0;
+  font: 400 .6rem var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  color: var(--sand);
+}
+.check-row input, label.inline input { width: auto; margin: 0; }
+
+/* background swatches (exclusive page background) */
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 8px 0 4px; }
+.swatch { position: relative; width: 38px; height: 38px; border: 1px solid rgba(20, 20, 20, .4); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: .7rem; }
+.swatch input { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; margin: 0; }
+.swatch:has(input:checked) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.swatch-noir { background: #141414; }
+.swatch-gris { background: #4d4d4d; }
+.swatch-blanc { background: #f0f0f0; }
+.swatch-beige { background: #d6b399; }
+.swatch-rose { background: #f05078; }
+.swatch-blur { background: linear-gradient(135deg, #4d4d4d, #141414); color: #f0f0f0; letter-spacing: 0; }
+
+/* stickers panel + slots */
+.sticker-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px; }
+@media (max-width: 640px) { .sticker-slots { grid-template-columns: 1fr; } }
+.sticker-slot { background: var(--surface); border: 1px solid var(--line); padding: 12px 14px 14px; }
+.sticker-slot label { margin-top: 0; }
+.sticker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
+.sticker-card { background: var(--surface); border: 1px solid var(--line); padding: 14px; text-align: center; }
+.sticker-card img { max-width: 92px; max-height: 92px; margin-bottom: 8px; }
+.sticker-card .name { display: block; font-size: .78rem; margin-bottom: 8px; word-break: break-word; }
+
+/* music library */
+.music-card { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--line); padding: 12px 16px; margin-bottom: 10px; }
+.music-card audio { max-width: 300px; width: 100%; }
+.music-card .name { flex: 1; min-width: 140px; font-size: .85rem; word-break: break-word; }
+
+/* drag & drop (albums list) */
+.drag-cell { cursor: grab; color: var(--sand); text-align: center; user-select: none; touch-action: none; letter-spacing: .2em; font-size: .9rem; }
+.sortable-ghost { opacity: .35; background: rgba(240, 80, 120, .08); }
+.sortable-chosen { background: rgba(240, 240, 240, .05); }
+.rowform { display: inline-flex; gap: 10px; align-items: center; }
+.rowform input[type="text"] { width: 170px; }
+
+/* library pages shared bits */
+.library-head-note { color: var(--muted); font-size: .8rem; margin: -4px 0 22px; }
+.inline-form { display: inline; }
+
+/* swatch checked state (radio is a sibling of the coloured span) */
+.swatch-choice { display: inline-flex; align-items: center; margin: 0 8px 0 0; }
+.swatch-choice input:checked + label { color: var(--accent); }
+.swatch-choice input:checked + label .swatch { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* hidden inputs must not take a cell in the platform row grid */
+.platform-row input[type="hidden"] { display: none; }
+
+/* dashboard: fluid card count (now 4 cards) */
+.cards { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+
+/* up/down fallback buttons (when SortableJS CDN is unreachable) */
+.drag-cell button { border: 0; color: var(--accent); padding: 0 4px; font-size: .7rem; letter-spacing: 0; }
+.drag-cell button:hover { color: var(--sand); }
+
+/* ---------- v1.3 ---------- */
+
+/* form sections: clear blocks for Main page / Exclusive page / Publication */
+.form-box { background: var(--surface); border: 1px solid var(--line); padding: 20px 22px 4px; margin: 0 0 22px; }
+.form-box h2 { margin: 0 0 14px; }
+
+/* library sub-tabs */
+.subtabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; }
+.subtab {
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  color: var(--paper);
+  font: 400 .6rem var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  text-decoration: none;
+}
+.subtab:hover, .subtab.active { border-color: var(--accent); color: var(--accent); }
+
+/* platform chips (preferred) */
+.chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 14px; }
+.chip {
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: none;
+  color: var(--paper);
+  padding: 8px 14px;
+  font: 400 .6rem var(--font-head);
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+
+/* unified, draggable link list */
+.link-item {
+  display: grid;
+  grid-template-columns: auto minmax(110px, 1fr) minmax(160px, 1.9fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px dotted var(--line);
+}
+.link-item input { padding: 8px 10px; }
+.link-item .remove-row { background: none; border: 0; color: var(--accent); padding: 4px 8px; font-size: .85rem; }
+.link-item .remove-row:hover { color: var(--sand); }
+.mini-arrow { border: 0; color: var(--accent); padding: 0 3px; font-size: .7rem; letter-spacing: 0; }
+.mini-arrow:hover { color: var(--sand); }
+
+/* platforms: inline edit rows with checkboxes glued to their label */
+.platform-edit { display: grid; grid-template-columns: minmax(120px, 200px) 1fr auto; gap: 8px 12px; align-items: center; }
+.platform-edit .check-row { margin: 0; grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.platform-edit input[type="text"], .platform-edit input:not([type]) { max-width: 220px; }
+
+/* dropdown readability: dark text on light background, beige when selected */
+select option { color: #141414; background: #f0f0f0; }
+select option:checked, select option:hover { background: #d6b399; color: #141414; }
+
+/* releases list */
+.row-cover { width: 34px; height: 34px; object-fit: cover; vertical-align: middle; margin-right: 8px; border: 1px solid var(--line); }
+.cover-thumb { max-width: 110px; display: block; border: 1px solid var(--line-strong); margin: 6px 0; }
+
+/* checkboxes stay glued to their label, not the next question */
+.check-row { margin: 12px 0 0; }
+.check-row label.inline { margin: 0; }

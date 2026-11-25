@@ -142,3 +142,110 @@ footer {
   color: var(--sand);
 }
 footer a { color: var(--accent); text-decoration: none; }
+
+/* ---------- v1.2 ---------- */
+
+/* stickers overlap the top edge of the cover, half outside, hidden when the card flips
+   (they live inside .face.front, whose backface-visibility hides them on flip) */
+.face.front { overflow: visible; }
+.face.back { overflow: hidden; }
+.sticker {
+  position: absolute;
+  width: 26%;
+  max-width: 110px;
+  height: auto;
+  z-index: 3;
+  filter: drop-shadow(0 3px 6px rgba(20, 20, 20, .35));
+  pointer-events: none;
+}
+.sticker.pos-tl { top: -11%; left: -7%; transform: rotate(-8deg); }
+.sticker.pos-tc { top: -12%; left: 37%; width: 20%; max-width: 84px; transform: rotate(2deg); }
+.sticker.pos-tr { top: -11%; right: -7%; transform: rotate(8deg); }
+
+/* album subtitle + single mention */
+.album-subtitle { margin-top: 3px; font-style: italic; font-size: .78rem; color: var(--sand); line-height: 1.5; }
+.album-single {
+  margin-top: 3px;
+  font: 400 .52rem var(--font-head);
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: .8;
+}
+a.album-meta { text-decoration: none; color: inherit; display: block; transition: color .2s; }
+a.album-meta:hover .album-title { color: var(--accent); }
+
+/* gratitude: welcome music mini-player, discreet fixed pill, scrolling track name */
+.welcome-player {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 14px 9px 11px;
+  background: rgba(20, 20, 20, .85);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  max-width: min(320px, calc(100vw - 36px));
+}
+.welcome-toggle {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(240, 240, 240, .4);
+  background: none;
+  color: var(--paper);
+  font-size: .62rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+.welcome-toggle:hover { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+.welcome-scroll {
+  overflow: hidden;
+  white-space: nowrap;
+  width: 170px;
+  font: 400 .6rem var(--font-head);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--paper);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.welcome-scroll span { display: inline-block; animation: decurio-scroll 11s linear infinite; }
+@keyframes decurio-scroll {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
+}
+
+/* ---------- v1.3 ---------- */
+
+/* title a bit larger, subtitle follows the title design (same font & colour, no italics) */
+.album-title { font-size: .95rem; }
+.album-subtitle {
+  font: 400 .78rem var(--font-head);
+  letter-spacing: .12em;
+  text-transform: none;
+  color: inherit;
+  opacity: .82;
+  margin-top: 4px;
+}
+.album-artists { margin-top: 5px; }
+/* artist names never break in the middle: wraps only happen after commas */
+.artist { white-space: nowrap; }
+
+/* whole title+subtitle+artists block visibly reacts on hover */
+a.album-meta:hover { color: var(--accent); }
+a.album-meta:hover .album-artists { color: var(--accent); }
+
+/* stickers: fully visible, straight, half of the sticker glued on the cover (like Opus Klassik) */
+.sticker.pos-tl { top: -11%; left: -13%; transform: none; }
+.sticker.pos-tc { top: -13%; left: 37%; transform: none; }
+.sticker.pos-tr { top: -11%; right: -13%; transform: none; }
+.grid { grid-template-columns: repeat(2, 1fr); gap: 56px 28px; row-gap: 56px; }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr; gap: 72px; } }

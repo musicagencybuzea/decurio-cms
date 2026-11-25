@@ -1,0 +1,147 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Exclusive per-release page (links.decur.io/XXX).
+ * Renders and exits. $album must be a full albums row, $preview = admin preview mode.
+ */
+function render_release_page(array $album, bool $preview): never
+{
+    global $settings;
+    if (!isset($settings)) $settings = settings();
+
+    $links = json_decode($album['links_json'] ?: '[]', true) ?: [];
+    $socials = json_decode($album['socials_json'] ?: '[]', true) ?: [];
+    $stickers = album_stickers($album);
+    $bg = in_array($album['bg_preset'] ?? 'noir', BG_PRESETS, true) ? $album['bg_preset'] : 'noir';
+    $box = in_array($album['box_color'] ?? 'auto', BOX_COLORS, true) ? $album['box_color'] : 'auto';
+    $transparent = !empty($album['box_transparent']);
+
+    $music = null;
+    if (!empty($album['music_id'])) {
+        $st = db()->prepare('SELECT id, name, file_path FROM tracks WHERE id=?');
+        $st->execute([(int)$album['music_id']]);
+        $music = $st->fetch() ?: null;
+    }
+
+    http_response_code(200);
+    ?>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#141414">
+<?php if (!empty($settings['favicon_file'])): ?><link rel="icon" href="<?= e($settings['favicon_file']) ?>"><?php endif; ?>
+<title><?= e($album['title']) ?> – decurio</title>
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/release.css">
+</head>
+<body class="release-page bg-<?= e($bg) ?>">
+<?php if ($bg === 'blur' && !empty($album['cover_path'])): ?>
+<div class="bg-blur-layer" style="background-image:url('<?= e($album['cover_path']) ?>')"></div>
+<?php endif; ?>
+<?php if ($preview): ?><div class="preview-banner">PREVIEW</div><?php endif; ?>
+
+<main class="release-wrap">
+    <a class="release-brand" href="/">decur.io</a>
+
+    <section class="release-cover">
+        <?php if ($music): ?>
+        <div class="cover-player" id="cover-toggle-wrap" data-src="<?= e($music['file_path']) ?>">
+            <button type="button" class="cover-toggle" aria-label="Play or stop">▶</button>
+        </div>
+        <?php endif; ?>
+        <p class="release-trackname"><?= e($music['name'] ?? '') ?></p>
+        <?php if (!empty($album['cover_path'])): ?>
+            <img src="<?= e($album['cover_path']) ?>" alt="Cover – <?= e($album['title']) ?>">
+        <?php else: ?>
+            <div class="placeholder cover-placeholder"><?= e($album['title']) ?></div>
+        <?php endif; ?>
+        <?php if (!empty($album['is_single'])): ?><p class="release-single">single</p><?php endif; ?>
+    </section>
+
+    <header class="release-head">
+        <h1><?= e($album['title']) ?></h1>
+        <?php if (!empty($album['subtitle'])): ?><p class="release-subtitle"><?= e($album['subtitle']) ?></p><?php endif; ?>
+        <p class="release-artists"><?= artists_html((string)$album['artists']) ?></p>
+    </header>
+
+    <section class="link-box box-<?= e($box) ?><?= $transparent ? ' box-transparent' : '' ?>">
+        <?php if ($links): ?>
+            <?php foreach ($links as $i => $link): if (!empty($link['url'])): ?>
+                <a class="rlink<?= $i === 0 ? ' primary' : '' ?>" href="<?= e($link['url']) ?>" target="_blank" rel="noopener noreferrer">
+                    <span><?= e($link['name'] ?? 'Listen') ?></span><span class="arrow">→</span>
+                </a>
+            <?php endif; endforeach; ?>
+        <?php else: ?>
+            <p class="small">Streaming links coming soon.</p>
+        <?php endif; ?>
+    </section>
+
+    <?php if ($socials): ?>
+    <nav class="socials">
+        <?php foreach (['instagram' => 'Instagram', 'facebook' => 'Facebook', 'tiktok' => 'TikTok', 'youtube' => 'YouTube'] as $key => $label): ?>
+            <?php if (!empty($socials[$key])): ?>
+            <a href="<?= e($socials[$key]) ?>" target="_blank" rel="noopener noreferrer" aria-label="<?= e($label) ?>">
+                <?= social_icon($key) ?>
+            </a>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </nav>
+    <?php endif; ?>
+</main>
+<script>
+// 30-second snippet with 1.5 s fade-out
+function decurioSnippet(a, b) {
+    let timer = null, fader = null, endedBound = false;
+    function stop() {
+        if (fader) { clearInterval(fader); fader = null; }
+        a.pause(); try { a.currentTime = 0; } catch (e) {}
+        a.volume = 1; if (b) b.textContent = '▶';
+    }
+    return function toggle() {
+        if (!a.paused) { stop(); return; }
+        if (timer) clearTimeout(timer);
+        a.volume = 1;
+        if (!endedBound) { a.addEventListener('ended', stop); endedBound = true; }
+        a.play().then(() => {
+            if (b) b.textContent = '❚❚';
+            const t0 = Date.now();
+            timer = setTimeout(() => {
+                fader = setInterval(() => {
+                    const left = t0 + 31500 - Date.now();
+                    if (left <= 0) { stop(); return; }
+                    a.volume = Math.max(0, Math.min(1, left / 1500));
+                }, 50);
+            }, 28500);
+        }).catch(() => { if (b) b.textContent = '▶'; });
+    };
+}
+const wrap = document.getElementById('cover-toggle-wrap');
+if (wrap) {
+    const audio = new Audio(wrap.dataset.src);
+    const btn = wrap.querySelector('.cover-toggle');
+    wrap.addEventListener('click', ev => { ev.preventDefault(); decurioSnippet(audio, btn)(); });
+}
+</script>
+</body>
+</html>
+    <?php
+    exit;
+}
+
+/** Monochrome inline SVG icons (single colour, follows the brand social-media usage). */
+function social_icon(string $key): string
+{
+    switch ($key) {
+        case 'instagram':
+            return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>';
+        case 'facebook':
+            return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15.5 3.5h-2.2c-2 0-3.3 1.3-3.3 3.4v2.4H7.6v3h2.4v8.2h3.1v-8.2h2.6l.5-3h-3.1V7.2c0-.6.3-.9.9-.9h2.2z"/></svg>';
+        case 'tiktok':
+            return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.5 3v10.6a3.4 3.4 0 1 1-3.4-3.4M13.5 3c.3 2.6 2 4.6 4.9 5"/></svg>';
+        case 'youtube':
+            return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="6" width="19" height="12" rx="4"/><path d="M10.2 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg>';
+    }
+    return '';
+}
