@@ -58,7 +58,7 @@ function render_release_page(array $album, bool $preview): never
         <?php if (!empty($album['subtitle'])): ?><p class="release-subtitle"><?= e($album['subtitle']) ?></p><?php endif; ?>
         <p class="release-artists"><?= artists_html((string)$album['artists']) ?></p>
         <?php if (!empty($album['is_single']) || $releaseDate !== ''): ?>
-        <p class="album-flags centered">
+        <p class="album-flags centered stacked">
             <?php if (!empty($album['is_single'])): ?><span class="flag">single</span><?php endif; ?>
             <?php if ($releaseDate !== ''): ?><span class="flag flag-out"><?= e(t('albums.field.album_out')) ?> <?= e(album_out_text($releaseDate)) ?></span><?php endif; ?>
         </p>

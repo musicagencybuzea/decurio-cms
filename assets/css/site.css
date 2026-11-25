@@ -226,6 +226,8 @@ footer a { color: var(--accent); text-decoration: none; }
 .album-flags.centered { justify-content: center; }
 /* main page: SINGLE on one line, ALBUM OUT + date on its own line below */
 .album-flags.stacked { flex-direction: column; align-items: flex-start; gap: 3px; }
+/* release page: same stacking, but centred */
+.album-flags.stacked.centered { align-items: center; }
 .album-flags .flag { color: var(--accent); }
 
 a.album-meta { text-decoration: none; color: inherit; display: block; transition: color .2s; }
