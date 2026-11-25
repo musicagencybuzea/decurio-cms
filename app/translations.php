@@ -12,20 +12,17 @@ return [
         'nav.music' => 'Music',
         'nav.settings' => 'Settings',
         'nav.logout' => 'Log out',
-
         'dash.subtitle' => 'release administration',
         'dash.total' => 'Total releases',
         'dash.published' => 'Published',
         'dash.scheduled' => 'Scheduled',
         'dash.drafts' => 'Drafts',
         'dash.view_site' => 'View public site ↗',
-
         'login.heading' => 'administration',
         'login.username' => 'Username',
         'login.password' => 'Password',
         'login.submit' => 'Log in',
         'login.error' => 'Wrong username or password.',
-
         'albums.manage' => 'New release',
         'albums.subtitle' => 'create a new release',
         'albums.section.main' => 'Informations',
@@ -33,7 +30,6 @@ return [
         'albums.section.publication' => 'Publication',
         'albums.preview' => 'Preview',
         'albums.preview_after_save' => 'available after the first save',
-
         'albums.preview_in_form' => 'Preview: open the release form and use the Preview button',
         'find.cover_set' => 'Cover selected – it will be downloaded when you save.',
         'albums.links.preferred' => 'Preferred platforms',
@@ -49,7 +45,6 @@ return [
         'albums.edit' => 'Edit release',
         'albums.saved' => 'Changes saved.',
         'albums.hint.reorder' => 'Drag the rows to reorder the public display.',
-
         'albums.field.title' => 'Title',
         'albums.field.subtitle' => 'Subtitle',
         'albums.field.artists' => 'Artists',
@@ -71,13 +66,11 @@ return [
         'albums.cancel' => 'Cancel',
         'albums.existing' => 'Existing releases',
         'albums.confirm_delete' => 'Delete this release?',
-
         'albums.field.socials' => 'Artist social links (shown on the exclusive page only)',
         'albums.social.instagram' => 'Instagram URL',
         'albums.social.facebook' => 'Facebook URL',
         'albums.social.tiktok' => 'TikTok URL',
         'albums.social.youtube' => 'YouTube URL',
-
         'albums.field.appearance' => 'Appearance',
         'albums.field.background' => 'Background',
         'albums.bg.black' => 'Black',
@@ -89,7 +82,6 @@ return [
         'albums.field.box_color' => 'Links box colour',
         'albums.box.auto' => 'Match background (recommended)',
         'albums.box.transparent' => 'Transparent box',
-
         'albums.field.stickers' => 'Stickers (top edge of the cover, max. 3)',
         'albums.field.stickers_enable' => 'Add stickers',
         'albums.sticker.slot' => 'Sticker',
@@ -97,11 +89,9 @@ return [
         'albums.sticker.pos.tl' => 'Top left',
         'albums.sticker.pos.tc' => 'Top centre',
         'albums.sticker.pos.tr' => 'Top right',
-
         'albums.field.music' => 'Release music',
         'albums.music.none' => 'No music',
         'albums.music.manage' => 'Manage the music library →',
-
         'find.section' => 'Find links automatically',
         'find.spotify' => 'Spotify link (album or single)',
         'find.btn' => 'Search',
@@ -110,7 +100,6 @@ return [
         'find.not_found' => 'No Spotify release found at this address.',
         'find.api_missing' => 'Spotify credentials missing. Add spotify_client_id and spotify_client_secret to app/config/config.php (see README).',
         'find.error' => 'The search failed. Please try again.',
-
         'table.title' => 'Title',
         'table.artists' => 'Artists',
         'table.number' => 'No.',
@@ -118,9 +107,7 @@ return [
         'table.actions' => 'Actions',
         'action.edit' => 'Edit',
         'action.delete' => 'Delete',
-
         'link.placeholder.name' => 'Platform',
-
         'err.title_required' => 'Title is required.',
         'err.upload' => 'The upload failed. Please try again.',
         'err.too_large' => 'This image is too large (max. 8 MB).',
@@ -130,7 +117,6 @@ return [
         'err.number_invalid' => 'Invalid number. Use digits only (up to 4).',
         'err.publish_at_required' => 'Please choose the release date and time.',
         'err.back' => '← Back',
-
         'settings.title' => 'Site settings',
         'settings.subtitle' => 'branding of the public site: title, logo and footer',
         'settings.saved' => 'Settings saved.',
@@ -144,7 +130,6 @@ return [
         'settings.welcome_none' => 'No welcome music',
         'settings.music_manage' => 'Manage the music library →',
         'settings.save' => 'Save changes',
-
         'platforms.title' => 'Platform library',
         'platforms.subtitle' => 'feeds the “Streaming links” section — preferred platforms are proposed first, custom entries for anything else',
         'platforms.add' => 'Add a platform',
@@ -157,7 +142,6 @@ return [
         'platforms.confirm_delete' => 'Delete this platform? (Existing releases keep their links.)',
         'platforms.saved' => 'Platforms saved.',
         'platforms.err.name' => 'The platform name is required.',
-
         'stickers.title' => 'Sticker library',
         'stickers.subtitle' => 'small labels shown on the top edge of the cover',
         'stickers.add' => 'Add a sticker',
@@ -170,7 +154,6 @@ return [
         'stickers.err.upload' => 'The upload failed. Please try again.',
         'stickers.err.save' => 'The sticker could not be saved.',
         'stickers.err.name' => 'The sticker name is required.',
-
         'music.title' => 'Music library',
         'music.subtitle' => 'snippets for the public and exclusive pages',
         'music.add' => 'Add a track',
@@ -186,12 +169,7 @@ return [
         'music.err.upload' => 'The upload failed. Please try again.',
         'music.err.save' => 'The audio file could not be saved.',
         'music.err.name' => 'The track name is required.',
-
         'library.saved' => 'Changes saved.',
-    ],
-
-
-        // --- v1.4 ---
         'albums.links.heading' => 'Streaming links',
         'albums.links.other_toggle' => 'Other platforms',
         'albums.links.custom_toggle' => 'Custom link',
@@ -238,20 +216,17 @@ return [
         'nav.music' => 'Musique',
         'nav.settings' => 'Paramètres',
         'nav.logout' => 'Déconnexion',
-
         'dash.subtitle' => 'administration des sorties',
         'dash.total' => 'Total des sorties',
         'dash.published' => 'Publiées',
         'dash.scheduled' => 'Programmées',
         'dash.drafts' => 'Brouillons',
         'dash.view_site' => 'Voir le site public ↗',
-
         'login.heading' => 'administration',
         'login.username' => 'Nom d’utilisateur',
         'login.password' => 'Mot de passe',
         'login.submit' => 'Se connecter',
         'login.error' => 'Nom d’utilisateur ou mot de passe incorrect.',
-
         'albums.manage' => 'Nouvelle sortie',
         'albums.subtitle' => 'créer une nouvelle sortie',
         'albums.section.main' => 'Informations',
@@ -259,7 +234,6 @@ return [
         'albums.section.publication' => 'Publication',
         'albums.preview' => 'Aperçu',
         'albums.preview_after_save' => 'disponible après le premier enregistrement',
-
         'albums.preview_in_form' => 'Aperçu : ouvre le formulaire de la release et utilise le bouton Preview',
         'find.cover_set' => 'Pochette sélectionnée – elle sera téléchargée à l’enregistrement.',
         'albums.links.preferred' => 'Plateformes préférées',
@@ -275,7 +249,6 @@ return [
         'albums.edit' => 'Modifier la sortie',
         'albums.saved' => 'Modifications enregistrées.',
         'albums.hint.reorder' => 'Glissez les lignes pour réordonner l’affichage public.',
-
         'albums.field.title' => 'Titre',
         'albums.field.subtitle' => 'Sous-titre',
         'albums.field.artists' => 'Artistes',
@@ -297,13 +270,11 @@ return [
         'albums.cancel' => 'Annuler',
         'albums.existing' => 'Sorties existantes',
         'albums.confirm_delete' => 'Supprimer cette sortie ?',
-
         'albums.field.socials' => 'Réseaux sociaux de l’artiste (affichés uniquement sur la page exclusive)',
         'albums.social.instagram' => 'URL Instagram',
         'albums.social.facebook' => 'URL Facebook',
         'albums.social.tiktok' => 'URL TikTok',
         'albums.social.youtube' => 'URL YouTube',
-
         'albums.field.appearance' => 'Apparence',
         'albums.field.background' => 'Arrière-plan',
         'albums.bg.black' => 'Noir',
@@ -315,7 +286,6 @@ return [
         'albums.field.box_color' => 'Couleur de la box des liens',
         'albums.box.auto' => 'Assortie à l’arrière-plan (recommandé)',
         'albums.box.transparent' => 'Box transparente',
-
         'albums.field.stickers' => 'Stickers (bord haut de la pochette, max. 3)',
         'albums.field.stickers_enable' => 'Ajouter des stickers',
         'albums.sticker.slot' => 'Sticker',
@@ -323,11 +293,9 @@ return [
         'albums.sticker.pos.tl' => 'Coin haut gauche',
         'albums.sticker.pos.tc' => 'Haut milieu',
         'albums.sticker.pos.tr' => 'Coin haut droit',
-
         'albums.field.music' => 'Musique de la sortie',
         'albums.music.none' => 'Pas de musique',
         'albums.music.manage' => 'Gérer la bibliothèque musicale →',
-
         'find.section' => 'Trouver les liens automatiquement',
         'find.spotify' => 'Lien Spotify (album ou single)',
         'find.btn' => 'Rechercher',
@@ -336,7 +304,6 @@ return [
         'find.not_found' => 'Aucune sortie Spotify trouvée à cette adresse.',
         'find.api_missing' => 'Identifiants Spotify manquants. Ajoutez spotify_client_id et spotify_client_secret dans app/config/config.php (voir README).',
         'find.error' => 'La recherche a échoué. Veuillez réessayer.',
-
         'table.title' => 'Titre',
         'table.artists' => 'Artistes',
         'table.number' => 'N°',
@@ -344,9 +311,7 @@ return [
         'table.actions' => 'Actions',
         'action.edit' => 'Modifier',
         'action.delete' => 'Supprimer',
-
         'link.placeholder.name' => 'Plateforme',
-
         'err.title_required' => 'Le titre est obligatoire.',
         'err.upload' => 'Le téléversement a échoué. Veuillez réessayer.',
         'err.too_large' => 'Image trop volumineuse (max. 8 Mo).',
@@ -356,7 +321,6 @@ return [
         'err.number_invalid' => 'Numéro invalide. Chiffres uniquement (jusqu’à 4).',
         'err.publish_at_required' => 'Veuillez choisir la date et l’heure de sortie.',
         'err.back' => '← Retour',
-
         'settings.title' => 'Paramètres du site',
         'settings.subtitle' => 'image de marque du site public : titre, logo et footer',
         'settings.saved' => 'Paramètres enregistrés.',
@@ -370,7 +334,6 @@ return [
         'settings.welcome_none' => 'Pas de musique d’accueil',
         'settings.music_manage' => 'Gérer la bibliothèque musicale →',
         'settings.save' => 'Enregistrer',
-
         'platforms.title' => 'Bibliothèque de plateformes',
         'platforms.subtitle' => 'alimente la section « Liens des plateformes » — les préférées sont proposées en premier, entrées personnalisées pour tout le reste',
         'platforms.add' => 'Ajouter une plateforme',
@@ -383,7 +346,6 @@ return [
         'platforms.confirm_delete' => 'Supprimer cette plateforme ? (Les sorties existantes gardent leurs liens.)',
         'platforms.saved' => 'Plateformes enregistrées.',
         'platforms.err.name' => 'Le nom de la plateforme est obligatoire.',
-
         'stickers.title' => 'Bibliothèque de stickers',
         'stickers.subtitle' => 'étiquettes affichées sur le bord haut de la pochette',
         'stickers.add' => 'Ajouter un sticker',
@@ -396,7 +358,6 @@ return [
         'stickers.err.upload' => 'Le téléversement a échoué. Veuillez réessayer.',
         'stickers.err.save' => 'Impossible d’enregistrer le sticker.',
         'stickers.err.name' => 'Le nom du sticker est obligatoire.',
-
         'music.title' => 'Bibliothèque musicale',
         'music.subtitle' => 'extraits pour les pages publique et exclusive',
         'music.add' => 'Ajouter un morceau',
@@ -412,12 +373,7 @@ return [
         'music.err.upload' => 'Le téléversement a échoué. Veuillez réessayer.',
         'music.err.save' => 'Impossible d’enregistrer le fichier audio.',
         'music.err.name' => 'Le nom du morceau est obligatoire.',
-
         'library.saved' => 'Modifications enregistrées.',
-    ],
-
-
-        // --- v1.4 ---
         'albums.links.heading' => 'Liens de streaming',
         'albums.links.other_toggle' => 'Autres plateformes',
         'albums.links.custom_toggle' => 'Lien personnalisé',
@@ -464,20 +420,17 @@ return [
         'nav.music' => 'Musik',
         'nav.settings' => 'Einstellungen',
         'nav.logout' => 'Abmelden',
-
         'dash.subtitle' => 'verwaltung der veröffentlichungen',
         'dash.total' => 'Veröffentlichungen (gesamt)',
         'dash.published' => 'Veröffentlicht',
         'dash.scheduled' => 'Geplant',
         'dash.drafts' => 'Entwürfe',
         'dash.view_site' => 'Öffentliche Seite ansehen ↗',
-
         'login.heading' => 'verwaltung',
         'login.username' => 'Benutzername',
         'login.password' => 'Passwort',
         'login.submit' => 'Anmelden',
         'login.error' => 'Falscher Benutzername oder falsches Passwort.',
-
         'albums.manage' => 'Neue Veröffentlichung',
         'albums.subtitle' => 'eine neue veröffentlichung anlegen',
         'albums.section.main' => 'Informationen',
@@ -485,7 +438,6 @@ return [
         'albums.section.publication' => 'Veröffentlichung',
         'albums.preview' => 'Vorschau',
         'albums.preview_after_save' => 'erst nach dem ersten Speichern verfügbar',
-
         'albums.preview_in_form' => 'Vorschau: Öffne das Release-Formular und nutze die Vorschau-Schaltfläche',
         'find.cover_set' => 'Cover ausgewählt – beim Speichern wird es heruntergeladen.',
         'albums.links.preferred' => 'Bevorzugte Plattformen',
@@ -501,7 +453,6 @@ return [
         'albums.edit' => 'Veröffentlichung bearbeiten',
         'albums.saved' => 'Änderungen gespeichert.',
         'albums.hint.reorder' => 'Zeilen ziehen, um die öffentliche Reihenfolge zu ändern.',
-
         'albums.field.title' => 'Titel',
         'albums.field.subtitle' => 'Untertitel',
         'albums.field.artists' => 'Künstler',
@@ -523,13 +474,11 @@ return [
         'albums.cancel' => 'Abbrechen',
         'albums.existing' => 'Vorhandene Veröffentlichungen',
         'albums.confirm_delete' => 'Diese Veröffentlichung löschen?',
-
         'albums.field.socials' => 'Social-Media-Links des Künstlers (nur auf der Exklusivseite)',
         'albums.social.instagram' => 'Instagram-URL',
         'albums.social.facebook' => 'Facebook-URL',
         'albums.social.tiktok' => 'TikTok-URL',
         'albums.social.youtube' => 'YouTube-URL',
-
         'albums.field.appearance' => 'Design',
         'albums.field.background' => 'Hintergrund',
         'albums.bg.black' => 'Schwarz',
@@ -541,7 +490,6 @@ return [
         'albums.field.box_color' => 'Farbe der Link-Box',
         'albums.box.auto' => 'An Hintergrund anpassen (empfohlen)',
         'albums.box.transparent' => 'Transparente Box',
-
         'albums.field.stickers' => 'Sticker (oberer Rand des Covers, max. 3)',
         'albums.field.stickers_enable' => 'Sticker hinzufügen',
         'albums.sticker.slot' => 'Sticker',
@@ -549,11 +497,9 @@ return [
         'albums.sticker.pos.tl' => 'Oben links',
         'albums.sticker.pos.tc' => 'Oben Mitte',
         'albums.sticker.pos.tr' => 'Oben rechts',
-
         'albums.field.music' => 'Musik der Veröffentlichung',
         'albums.music.none' => 'Keine Musik',
         'albums.music.manage' => 'Musikbibliothek verwalten →',
-
         'find.section' => 'Links automatisch finden',
         'find.spotify' => 'Spotify-Link (Album oder Single)',
         'find.btn' => 'Suchen',
@@ -562,7 +508,6 @@ return [
         'find.not_found' => 'Keine Spotify-Veröffentlichung an dieser Adresse gefunden.',
         'find.api_missing' => 'Spotify-Zugangsdaten fehlen. Ergänze spotify_client_id und spotify_client_secret in app/config/config.php (siehe README).',
         'find.error' => 'Die Suche ist fehlgeschlagen. Bitte erneut versuchen.',
-
         'table.title' => 'Titel',
         'table.artists' => 'Künstler',
         'table.number' => 'Nr.',
@@ -570,9 +515,7 @@ return [
         'table.actions' => 'Aktionen',
         'action.edit' => 'Bearbeiten',
         'action.delete' => 'Löschen',
-
         'link.placeholder.name' => 'Plattform',
-
         'err.title_required' => 'Der Titel ist erforderlich.',
         'err.upload' => 'Der Upload ist fehlgeschlagen. Bitte erneut versuchen.',
         'err.too_large' => 'Das Bild ist zu groß (max. 8 MB).',
@@ -582,7 +525,6 @@ return [
         'err.number_invalid' => 'Ungültige Nummer. Nur Ziffern (bis zu 4).',
         'err.publish_at_required' => 'Bitte Datum und Uhrzeit der Veröffentlichung wählen.',
         'err.back' => '← Zurück',
-
         'settings.title' => 'Website-Einstellungen',
         'settings.subtitle' => 'markenauftritt der öffentlichen Seite: Titel, Logo und Footer',
         'settings.saved' => 'Einstellungen gespeichert.',
@@ -596,7 +538,6 @@ return [
         'settings.welcome_none' => 'Keine Willkommensmusik',
         'settings.music_manage' => 'Musikbibliothek verwalten →',
         'settings.save' => 'Änderungen speichern',
-
         'platforms.title' => 'Plattform-Bibliothek',
         'platforms.subtitle' => 'füttert den Bereich „Streaming-Links“ — bevorzugte Plattformen zuerst, eigene Einträge für alles andere',
         'platforms.add' => 'Plattform hinzufügen',
@@ -609,7 +550,6 @@ return [
         'platforms.confirm_delete' => 'Diese Plattform löschen? (Bestehende Veröffentlichungen behalten ihre Links.)',
         'platforms.saved' => 'Plattformen gespeichert.',
         'platforms.err.name' => 'Der Plattformname ist erforderlich.',
-
         'stickers.title' => 'Sticker-Bibliothek',
         'stickers.subtitle' => 'kleine Etiketten auf dem oberen Rand des Covers',
         'stickers.add' => 'Sticker hinzufügen',
@@ -622,7 +562,6 @@ return [
         'stickers.err.upload' => 'Der Upload ist fehlgeschlagen. Bitte erneut versuchen.',
         'stickers.err.save' => 'Der Sticker konnte nicht gespeichert werden.',
         'stickers.err.name' => 'Der Stickername ist erforderlich.',
-
         'music.title' => 'Musikbibliothek',
         'music.subtitle' => 'Ausschnitte für die öffentliche und die Exklusivseite',
         'music.add' => 'Track hinzufügen',
@@ -638,11 +577,7 @@ return [
         'music.err.upload' => 'Der Upload ist fehlgeschlagen. Bitte erneut versuchen.',
         'music.err.save' => 'Die Audiodatei konnte nicht gespeichert werden.',
         'music.err.name' => 'Der Trackname ist erforderlich.',
-
         'library.saved' => 'Änderungen gespeichert.',
-    ],
-
-        // --- v1.4 ---
         'albums.links.heading' => 'Streaming-Links',
         'albums.links.other_toggle' => 'Weitere Plattformen',
         'albums.links.custom_toggle' => 'Eigener Link',
