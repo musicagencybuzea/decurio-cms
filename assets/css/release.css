@@ -44,12 +44,15 @@ body.release-page {
   flex-direction: column;
   gap: 0; /* the block distances are now two separate settings (margins below) */
 }
-/* two independent spacing settings on the release page:
-   --rel-gap  = cover <-> titles    --rel-gap2 = titles <-> link box */
-.release-cover { margin-top: var(--rel-gap, 6px); }
+/* Independent layout of the release page:
+   - the decur.io link NEVER moves (fixed distance above the cover)
+   - knob 1 (--rel-gap)  = cover <-> titles
+   - knob 2 (--rel-gap2) = titles <-> link box
+   - the social icons hang off the link box with a FIXED distance: they ride up/down with it */
+.release-cover { margin-top: 6px; }
 .release-head { margin-top: var(--rel-gap, 6px); }
 .link-box { margin-top: var(--rel-gap2, 6px); }
-.socials { margin-top: var(--rel-gap2, 6px); }
+.socials { margin-top: 6px; }
 
 .release-brand {
   align-self: center;
@@ -122,7 +125,7 @@ body.release-page {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 16px 14px;
+  padding: 12px 14px;
   border: 1px solid rgba(20, 20, 20, .22);
 }
 .link-box .small { text-align: center; opacity: .6; font-size: .78rem; }
