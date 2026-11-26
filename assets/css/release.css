@@ -32,12 +32,14 @@ body.release-page {
 .bg-beige { background: #d6b399; color: #141414; }
 .bg-rose { background: #f05078; color: #141414; }
 .bg-blur { background: #141414; color: #f0f0f0; }
+/* cover-adapted backgrounds (adapt1/2/3): dark fallback, recoloured by script from the cover palette */
+.bg-adapt { background: #141414; color: #f0f0f0; }
 
 .release-wrap {
   position: relative;
   max-width: 420px;
   margin: 0 auto;
-  padding: var(--rel-top, 34px) 22px 72px;
+  padding: var(--rel-top, 38px) 22px 72px;
   display: flex;
   flex-direction: column;
   gap: var(--rel-gap, 6px);
@@ -196,7 +198,7 @@ body.release-page {
 }
 
 @media (max-width: 480px) {
-  .release-wrap { padding-top: calc(var(--rel-top, 34px) * .8); }
+  .release-wrap { padding-top: calc(var(--rel-top, 38px) * .8); }
 }
 
 /* ---------- v1.3 / v1.4 ---------- */
@@ -206,7 +208,7 @@ body.release-page {
 /* ---------- v1.4 phase 2 ---------- */
 /* a sticker overhangs above the cover: only the cover slides down (margin), so the
    return link (decur.io, top-centre) stays pinned at the very top of the page */
-.has-sticker .release-cover { margin-top: 6%; }
+.has-sticker .release-cover { margin-top: 10%; }
 /* manual control of the link text colour (Settings - Design): wins over the automatic
    light-background contrast rule as soon as a choice is made */
 .release-page.ink-clair .link-box .rlink,

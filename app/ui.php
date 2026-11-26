@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 const BOX_COLORS = ['auto', 'noir', 'gris', 'blanc', 'beige', 'rose'];
-const BG_PRESETS = ['noir', 'gris', 'blanc', 'beige', 'rose', 'blur1', 'blur2', 'blur3', 'ambilight', 'video'];
+const BG_PRESETS = ['noir', 'gris', 'blanc', 'beige', 'rose', 'blur1', 'blur2', 'blur3', 'ambilight', 'video', 'adapt1', 'adapt2', 'adapt3'];
 const STICKER_POSITIONS = ['tl', 'tc', 'tr'];
 const LINK_ACTIONS = ['play', 'buy', 'download', 'visit', 'listen', 'learn', 'subscribe', 'join', 'support'];
 
@@ -84,6 +84,21 @@ function save_video_upload(): ?int
     return (int)db()->lastInsertId();
 }
 
+/** Auto-add a saved cover to the cover library (idempotent: same file is not added twice). */
+function register_cover(string $path, string $title): void
+{
+    if ($path === '' || str_starts_with(basename($path), 'preview_')) return;
+    try {
+        $st = db()->prepare('SELECT id FROM covers WHERE file_path=?');
+        $st->execute([$path]);
+        if ($st->fetch()) return;
+        $name = trim($title) !== '' ? trim($title) : 'Cover ' . date('Y-m-d H:i');
+        db()->prepare('INSERT INTO covers(name,file_path) VALUES(?,?)')->execute([$name, $path]);
+    } catch (Throwable $e) {
+        // covers table not migrated yet — silently skip
+    }
+}
+
 /** Shared public link row: platform logo (or name) left, fixed-size action button right. */
 function link_row_html(array $link, string $classes = ''): string
 {
@@ -144,7 +159,7 @@ function design_vars(array $s): string
     $title = $num('design_main_title', 19);
     $meta = $num('design_main_meta', 15);
     $flag = $num('design_flag', 11);
-    $relTop = $num0('design_rel_top', 34);
+    $relTop = $num0('design_rel_top', 38);
     $relGap = $num0('design_rel_gap', 6);
     $relTitle = $num('design_rel_title', 24);
     $relSub = $num('design_rel_sub', 19);

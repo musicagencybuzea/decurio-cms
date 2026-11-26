@@ -9,3 +9,5 @@ uploads/stickers/*
 Thumbs.db
 uploads/videos/*
 !uploads/videos/.htaccess
+uploads/covers/*
+!uploads/covers/.htaccess

@@ -170,6 +170,18 @@ function resolve_cover(int $oldId): string
         if ($fetched === null) fail(t('err.cover_fetch'));
         return $fetched;
     }
+    // choose from the cover library (only when no file and no Spotify URL were given)
+    $libId = (int)($_POST['cover_lib_id'] ?? 0);
+    if ($libId > 0) {
+        try {
+            $st2 = db()->prepare('SELECT file_path FROM covers WHERE id=?');
+            $st2->execute([$libId]);
+            $libPath = (string)$st2->fetchColumn();
+            if ($libPath !== '') return $libPath;
+        } catch (Throwable $e3) {
+            // covers table not migrated yet
+        }
+    }
     if ($oldId) {
         $stmt = db()->prepare('SELECT cover_path FROM albums WHERE id=?');
         $stmt->execute([$oldId]);
@@ -201,6 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['preview_mode'])) {
     }
 
     $cover = resolve_cover($id);
+    register_cover($cover, $p['title']); // auto-add every new cover to the cover library
 
     // video/Canvas background: a freshly uploaded file goes straight into the video library
     $newVideoId = save_video_upload();
@@ -229,6 +242,11 @@ $platforms = db()->query('SELECT * FROM platforms WHERE active=1 ORDER BY sort_o
 $preferred = array_values(array_filter($platforms, fn($p) => !empty($p['preferred'])));
 $others = array_values(array_filter($platforms, fn($p) => empty($p['preferred'])));
 $stickers = db()->query('SELECT id, name, image_path FROM stickers ORDER BY name')->fetchAll();
+try {
+    $covers = db()->query('SELECT id, name, file_path FROM covers ORDER BY name')->fetchAll();
+} catch (Throwable $e4) {
+    $covers = []; // covers table not migrated yet
+}
 try {
     $videos = db()->query('SELECT id, name, file_path FROM videos ORDER BY name')->fetchAll();
 } catch (Throwable $e) {
@@ -317,6 +335,13 @@ admin_page_open(t('albums.manage'), 'albums');
 
         <label for="cover"><?= e(t('albums.field.cover')) ?></label>
         <input id="cover" type="file" name="cover" accept="image/jpeg,image/png,image/webp">
+        <label for="cover_lib_id"><?= e(t('albums.cover_lib')) ?></label>
+        <select id="cover_lib_id" name="cover_lib_id">
+            <option value=""><?= e(t('albums.cover_lib_none')) ?></option>
+            <?php foreach ($covers as $c3): ?>
+                <option value="<?= (int)$c3['id'] ?>"><?= e($c3['name']) ?></option>
+            <?php endforeach; ?>
+        </select>
         <?php if (!empty($edit['cover_path'])): ?>
             <p class="small"><?= e(t('albums.field.cover_current')) ?>: <?= e($edit['cover_path']) ?></p>
         <?php endif; ?>
@@ -393,7 +418,7 @@ admin_page_open(t('albums.manage'), 'albums');
         <?php $bgVal = (string)($edit['bg_preset'] ?? 'noir');
         if ($bgVal === 'blur') $bgVal = 'blur2'; // legacy value from v1.2
         $bgGroup = str_starts_with($bgVal, 'blur') ? 'blur'
-            : (in_array($bgVal, ['noir', 'gris', 'blanc', 'beige', 'rose'], true) ? 'solid'
+            : (in_array($bgVal, ['noir', 'gris', 'blanc', 'beige', 'rose', 'adapt1', 'adapt2', 'adapt3'], true) ? 'solid'
             : ($bgVal === 'ambilight' ? 'ambilight' : 'video')); ?>
         <input type="hidden" name="bg_preset" id="bg_preset" value="<?= e($bgVal) ?>">
         <label><?= e(t('albums.field.background')) ?></label>
@@ -416,9 +441,16 @@ admin_page_open(t('albums.manage'), 'albums');
         <div class="bg-sub" data-sub="solid" <?= $bgGroup === 'solid' ? '' : 'hidden' ?>>
             <label for="bg_solid"><?= e(t('albums.bg.solid')) ?></label>
             <select id="bg_solid" name="bg_solid">
-                <?php foreach ([['noir', 'albums.bg.black', '#141414'], ['gris', 'albums.bg.grey', '#4d4d4d'], ['blanc', 'albums.bg.white', '#f0f0f0'], ['beige', 'albums.bg.beige', '#d6b399'], ['rose', 'albums.bg.rose', '#f05078']] as [$v, $k2, $c2]): ?>
+                <optgroup label="<?= e(t('albums.bg.solid')) ?>">
+                <?php foreach ([['noir', 'albums.bg.black'], ['gris', 'albums.bg.grey'], ['blanc', 'albums.bg.white'], ['beige', 'albums.bg.beige'], ['rose', 'albums.bg.rose']] as [$v, $k2]): ?>
                     <option value="<?= e($v) ?>" <?= $bgVal === $v ? 'selected' : '' ?>><?= e(t($k2)) ?></option>
                 <?php endforeach; ?>
+                </optgroup>
+                <optgroup label="<?= e(t('albums.bg.adapt_group')) ?>">
+                <?php foreach ([['adapt1', 'albums.bg.adapt1'], ['adapt2', 'albums.bg.adapt2'], ['adapt3', 'albums.bg.adapt3']] as [$v2, $k3]): ?>
+                    <option value="<?= e($v2) ?>" <?= $bgVal === $v2 ? 'selected' : '' ?>><?= e(t($k3)) ?></option>
+                <?php endforeach; ?>
+                </optgroup>
             </select>
         </div>
         <div class="bg-sub" data-sub="video" <?= $bgGroup === 'video' ? '' : 'hidden' ?>>
@@ -746,11 +778,18 @@ function T_action(o) {
     var WAIT = '<style>html,body{height:100%;margin:0;background:#141414}'
         + 'p{color:#f0f0f0;font-size:11px;letter-spacing:.3em;text-transform:uppercase;'
         + 'font-family:sans-serif;text-align:center;padding-top:48%}</style><p>…</p>';
-    var WAIT_ERR = '<style>html,body{height:100%;margin:0;background:#141414}'
-        + 'p{color:#f05078;font-size:11px;letter-spacing:.2em;text-transform:uppercase;'
+    var WAIT_ERR_HEAD = '<style>html,body{height:100%;margin:0;background:#141414}'
+        + 'p{color:#f05078;font-size:11px;letter-spacing:.15em;text-transform:uppercase;'
         + 'font-family:sans-serif;text-align:center;padding-top:38%;max-width:82%;margin-left:auto;margin-right:auto}'
-        + '</style><p>Preview error. Please check that ALL files of the latest upload list are on the server'
-        + ' (preview-page.php, app/preview-render.php, admin/preview.php, app/ui.php), then reload this page.</p>';
+        + '</style><p>';
+    function errPage(msg) {
+        var safe = String(msg || 'unknown error').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return WAIT_ERR_HEAD + safe + '</p>';
+    }
+    function marker(html, fallback) {
+        var m = String(html || '').match(/<!--PREVIEW-ERROR:([\s\S]*?)-->/);
+        return m ? m[1].trim() : fallback;
+    }
     btn.addEventListener('click', function (ev) {
         panel.hidden = false;
         if (tab) tab.hidden = false;
@@ -765,24 +804,29 @@ function T_action(o) {
         if (iframe) iframe.srcdoc = WAIT;
         fetch('preview.php?t=' + t, { method: 'POST', body: fd, cache: 'no-store' })
             .then(function (r) {
-                if (!r.ok) throw new Error('snapshot failed');
+                if (!r.ok) return r.text().then(function (tx) {
+                    throw new Error(marker(tx, 'step 1 failed (saving the form state), status ' + r.status));
+                });
+            })
+            .then(function () {
                 return fetch('/preview-page.php?lang=' + LANG + '&t=' + Date.now(), { cache: 'no-store' });
             })
             .then(function (r) {
-                if (!r.ok) throw new Error('preview failed');
+                if (!r.ok) return r.text().then(function (tx) {
+                    throw new Error(marker(tx, 'step 2 failed (loading the preview page), status ' + r.status));
+                });
                 return r.text();
             })
             .then(function (html) {
                 if (html.indexOf('class="release-page') === -1) {
-                    if (iframe) iframe.srcdoc = WAIT_ERR; // served page was NOT the release page
-                    return;
+                    throw new Error(marker(html, 'an unexpected page was served (cache?)'));
                 }
                 if (iframe) iframe.srcdoc = html.replace('<head>', '<head><base href="/">');
                 if (tab) tab.href = '/preview-page.php?lang=' + LANG + '&x=' + Date.now();
             })
-            .catch(function () {
+            .catch(function (err) {
                 // NEVER submit the real form here: it would SAVE the album and show the releases list
-                if (iframe) iframe.srcdoc = WAIT_ERR;
+                if (iframe) iframe.srcdoc = errPage(err && err.message);
             });
     });
     if (tab) tab.href = '/preview-page.php?lang=' + LANG;

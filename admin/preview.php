@@ -33,6 +33,16 @@ if (!empty($_FILES['cover']['name']) && $_FILES['cover']['error'] === UPLOAD_ERR
         }
     }
 }
+// cover chosen from the cover library (no file upload this time)
+if ($cover === '' && !empty($_POST['cover_lib_id'])) {
+    try {
+        $st3 = db()->prepare('SELECT file_path FROM covers WHERE id=?');
+        $st3->execute([(int)$_POST['cover_lib_id']]);
+        $cover = (string)$st3->fetchColumn();
+    } catch (Throwable $e5) {
+        $cover = '';
+    }
+}
 // replace an old preview file when a new one comes in
 foreach (glob(ROOT . '/uploads/albums/preview_' . session_id() . '.*') ?: [] as $old) {
     if ($cover !== '' && basename($old) !== basename($cover) && is_file($old)) @unlink($old);

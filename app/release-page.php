@@ -35,6 +35,10 @@ function render_release_page(array $album, bool $preview): never
     $inkSetting = trim((string)($album['link_text'] ?? ''));
     $inkClass = $inkSetting === 'clair' ? ' ink-clair' : ($inkSetting === 'fonce' ? ' ink-fonce' : '');
     $stickerClass = $stickers ? ' has-sticker' : '';
+    // cover-adapted background (adapt1/2/3): dark base classes so all box/link styles keep working,
+    // then a small script recolours the page from the cover's own palette
+    $adaptGrade = str_starts_with($bg, 'adapt') ? substr($bg, -1) : '';
+    $bodyClass = $adaptGrade !== '' ? 'bg-noir bg-adapt bg-adapt' . $adaptGrade : 'bg-' . $bg;
 
     http_response_code(200);
     ?>
@@ -49,7 +53,7 @@ function render_release_page(array $album, bool $preview): never
 <link rel="stylesheet" href="/assets/css/release.css">
 <style><?= design_vars($settings) ?></style>
 </head>
-<body class="release-page bg-<?= e($bg) ?><?= e($inkClass) ?><?= $stickerClass ?>">
+<body class="release-page <?= e($bodyClass) ?><?= e($inkClass) ?><?= $stickerClass ?>">
 <?php if (str_starts_with($bg, 'blur') && !empty($album['cover_path'])): ?>
 <div class="bg-blur-layer blur-g<?= e(substr($bg, -1)) ?>" style="background-image:url('<?= e($album['cover_path']) ?>')"></div>
 <?php endif; ?>
@@ -113,6 +117,64 @@ function render_release_page(array $album, bool $preview): never
     <?php endif; ?>
 </main>
 <?php if (function_exists('stats_beacon_js')) echo stats_beacon_js(); ?>
+<?php if ($adaptGrade !== '' && !empty($album['cover_path'])): ?>
+<script>
+(function () {
+  var cover = document.querySelector('.release-cover img.cover-img');
+  if (!cover || !cover.getAttribute('src')) return;
+  var img = new Image();
+  img.onload = function () {
+    try {
+      var S = 24;
+      var c = document.createElement('canvas');
+      c.width = S; c.height = S;
+      var ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0, S, S);
+      var d = ctx.getImageData(0, 0, S, S).data;
+      var buckets = {};
+      for (var i = 0; i < d.length; i += 4) {
+        var key = ((d[i] >> 5) << 10) | ((d[i + 1] >> 5) << 5) | (d[i + 2] >> 5);
+        var b = buckets[key] || (buckets[key] = { n: 0, r: 0, g: 0, b: 0 });
+        b.n++; b.r += d[i]; b.g += d[i + 1]; b.b += d[i + 2];
+      }
+      var list = [];
+      for (var k in buckets) {
+        var v = buckets[k];
+        list.push({ n: v.n, r: Math.round(v.r / v.n), g: Math.round(v.g / v.n), b: Math.round(v.b / v.n) });
+      }
+      list.sort(function (a, b2) { return b2.n - a.n; });
+      if (!list.length) return;
+      var dom = list[0];
+      var dist = function (a, b2) {
+        var dr = a.r - b2.r, dg = a.g - b2.g, db = a.b - b2.b;
+        return Math.sqrt(dr * dr + dg * dg + db * db);
+      };
+      var far = list[0];
+      for (var i2 = 1; i2 < list.length; i2++) if (dist(list[i2], dom) > dist(far, dom)) far = list[i2];
+      var mid = null, best = -1;
+      for (var j = 1; j < list.length; j++) {
+        var score = Math.min(dist(list[j], dom), dist(list[j], far));
+        if (score > best && list[j].n >= list[0].n * 0.15) { best = score; mid = list[j]; }
+      }
+      if (!mid) mid = far;
+      var shade = function (c) {
+        var lum = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+        if (lum > 130) {
+          var f = 130 / lum;
+          return { r: Math.round(c.r * f), g: Math.round(c.g * f), b: Math.round(c.b * f) };
+        }
+        return c;
+      };
+      var m = document.body.className.match(/bg-adapt(\d)/);
+      var pick = m && m[1] === '2' ? mid : (m && m[1] === '3' ? far : dom);
+      pick = shade(pick);
+      document.body.style.background = 'rgb(' + pick.r + ',' + pick.g + ',' + pick.b + ')';
+    } catch (e) { /* canvas not readable (old browser): keep the dark fallback */ }
+  };
+  img.src = cover.getAttribute('src');
+})();
+</script>
+<?php endif; ?>
 </body>
 </html>
     <?php
