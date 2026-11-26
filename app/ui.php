@@ -155,13 +155,19 @@ function design_vars(array $s): string
         if (!isset($s[$k]) || trim((string)$s[$k]) === '') return $d;
         return max(0, (int)round((float)$s[$k]));
     };
+    // like $num0, but negative values down to -60 are allowed: the blocks can overlap
+    // (e.g. pull the link box up over the remaining cushion below the titles)
+    $numNeg = static function (string $k, int $d) use ($s): int {
+        if (!isset($s[$k]) || trim((string)$s[$k]) === '') return $d;
+        return max(-60, (int)round((float)$s[$k]));
+    };
     $accent = in_array($s['design_accent'] ?? '', ['#141414', '#f0f0f0', '#d6b399', '#f05078'], true) ? $s['design_accent'] : '#f05078';
     $title = $num('design_main_title', 19);
     $meta = $num('design_main_meta', 15);
     $flag = $num('design_flag', 11);
     $relTop = $num0('design_rel_top', 38);
-    $relGap = $num0('design_rel_gap', 6);      // cover <-> titles
-    $relGap2 = $num0('design_rel_gap2', 6);    // titles <-> link box
+    $relGap = $numNeg('design_rel_gap', 6);    // cover <-> titles (can overlap)
+    $relGap2 = $numNeg('design_rel_gap2', 6);  // titles <-> link box (can overlap)
     $relTitle = $num('design_rel_title', 24);
     $relSub = $num('design_rel_sub', 19);
     $relMeta = $num('design_rel_meta', 14);
