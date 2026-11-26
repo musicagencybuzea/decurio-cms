@@ -748,8 +748,9 @@ function T_action(o) {
         + 'font-family:sans-serif;text-align:center;padding-top:48%}</style><p>…</p>';
     var WAIT_ERR = '<style>html,body{height:100%;margin:0;background:#141414}'
         + 'p{color:#f05078;font-size:11px;letter-spacing:.2em;text-transform:uppercase;'
-        + 'font-family:sans-serif;text-align:center;padding-top:42%;max-width:80%;margin-left:auto;margin-right:auto}'
-        + '</style><p>Preview blocked: preview-page.php or app/preview-render.php is missing on the server (see the upload list).</p>';
+        + 'font-family:sans-serif;text-align:center;padding-top:38%;max-width:82%;margin-left:auto;margin-right:auto}'
+        + '</style><p>Preview error. Please check that ALL files of the latest upload list are on the server'
+        + ' (preview-page.php, app/preview-render.php, admin/preview.php, app/ui.php), then reload this page.</p>';
     btn.addEventListener('click', function (ev) {
         panel.hidden = false;
         if (tab) tab.hidden = false;
@@ -780,8 +781,8 @@ function T_action(o) {
                 if (tab) tab.href = '/preview-page.php?lang=' + LANG + '&x=' + Date.now();
             })
             .catch(function () {
-                form.target = 'preview_frame';
-                form.submit();
+                // NEVER submit the real form here: it would SAVE the album and show the releases list
+                if (iframe) iframe.srcdoc = WAIT_ERR;
             });
     });
     if (tab) tab.href = '/preview-page.php?lang=' + LANG;

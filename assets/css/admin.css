@@ -420,6 +420,7 @@ select option:checked, select option:hover { background: #d6b399; color: #141414
 /* ---------- v1.4 phase 2: design background picker (4 choices) ---------- */
 .bg-choice { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 0 0 10px; text-align: left; }
 .bg-choice .swatch-choice { display: flex; justify-content: flex-start; align-items: center; gap: 8px; margin: 0; text-align: left; }
+.bg-choice .swatch-choice label { margin: 0; }
 .bg-choice input[type="radio"] { accent-color: #d6b399; }
 .bg-sub { border: 1px dashed #4d4d4d; padding: 12px 14px 14px; margin: 10px 0 16px; }
 .bg-sub label { display: block; margin: 0 0 6px; }

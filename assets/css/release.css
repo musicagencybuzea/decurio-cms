@@ -37,10 +37,10 @@ body.release-page {
   position: relative;
   max-width: 420px;
   margin: 0 auto;
-  padding: var(--rel-top, 26px) 22px 72px;
+  padding: var(--rel-top, 34px) 22px 72px;
   display: flex;
   flex-direction: column;
-  gap: var(--rel-gap, 10px);
+  gap: var(--rel-gap, 6px);
 }
 
 .release-brand {
@@ -196,7 +196,7 @@ body.release-page {
 }
 
 @media (max-width: 480px) {
-  .release-wrap { padding-top: calc(var(--rel-top, 26px) * .8); }
+  .release-wrap { padding-top: calc(var(--rel-top, 34px) * .8); }
 }
 
 /* ---------- v1.3 / v1.4 ---------- */
