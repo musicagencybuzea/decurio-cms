@@ -249,8 +249,7 @@ video.bg-canvas-video {
   width: 100vw;
   height: 100vh;
   height: 100dvh; /* mobile: follows the real viewport height */
-  object-fit: contain;
-  object-position: center top; /* always anchored at the very top of the page */
+  object-fit: cover; /* proportional fill: grows without stretching, crops the sides if needed */
   background: #141414;
   z-index: -1;
   pointer-events: none;

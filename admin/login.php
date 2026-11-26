@@ -24,7 +24,7 @@ $s = settings();
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#141414">
 <title>administration – decurio cms</title>
-<link rel="stylesheet" href="../assets/css/admin.css">
+<link rel="stylesheet" href="<?= e(asset_url('assets/css/admin.css', '../')) ?>">
 </head>
 <body class="login-body">
 <div>

@@ -49,8 +49,8 @@ function render_release_page(array $album, bool $preview): never
 <meta name="theme-color" content="#141414">
 <?php if (!empty($settings['favicon_file'])): ?><link rel="icon" href="<?= e($settings['favicon_file']) ?>"><?php endif; ?>
 <title><?= e($album['title']) ?> – decurio</title>
-<link rel="stylesheet" href="/assets/css/site.css">
-<link rel="stylesheet" href="/assets/css/release.css">
+<link rel="stylesheet" href="<?= e(asset_url('assets/css/site.css')) ?>">
+<link rel="stylesheet" href="<?= e(asset_url('assets/css/release.css')) ?>">
 <style><?= design_vars($settings) ?></style>
 </head>
 <body class="release-page <?= e($bodyClass) ?><?= e($inkClass) ?><?= $stickerClass ?>">

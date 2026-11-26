@@ -293,7 +293,7 @@ function admin_page_open(string $title, string $active): void
 <meta name="theme-color" content="#141414">
 <?php if (!empty($favicon)): ?><link rel="icon" href="../<?= e($favicon) ?>"><?php endif; ?>
 <title><?= e($title) ?> – decurio cms</title>
-<link rel="stylesheet" href="../assets/css/admin.css">
+<link rel="stylesheet" href="<?= e(asset_url('assets/css/admin.css', '../')) ?>">
 </head>
 <body>
 <div class="wrap">
@@ -348,7 +348,7 @@ function fail(string $message): never
 <meta name="theme-color" content="#141414">
 <?php if (!empty($favicon)): ?><link rel="icon" href="<?= e($prefix . $favicon) ?>"><?php endif; ?>
 <title>decurio cms</title>
-<link rel="stylesheet" href="<?= e($prefix) ?>assets/css/admin.css">
+<link rel="stylesheet" href="<?= e(asset_url('assets/css/admin.css', $prefix)) ?>">
 </head>
 <body class="login-body">
 <div>
@@ -393,6 +393,15 @@ function artists_html(string $artists): string
 {
     $names = array_values(array_filter(array_map('trim', explode(',', $artists)), fn($a) => $a !== ''));
     return implode(', ', array_map(fn($a) => '<span class="artist">' . e($a) . '</span>', $names));
+}
+
+/** Cache-busting asset URL: /assets/css/site.css?v=<file mtime> — every FileZilla upload changes
+ *  the mtime, so browsers and phones fetch the fresh file instead of their cached copy. */
+function asset_url(string $path, string $prefix = ''): string
+{
+    $abs = ROOT . '/' . ltrim($path, '/');
+    $v = is_file($abs) ? (string)filemtime($abs) : '1';
+    return $prefix . ltrim($path, '/') . '?v=' . $v;
 }
 
 /** Reorder helper: fetch all tracks for selects. */

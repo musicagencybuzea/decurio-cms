@@ -50,7 +50,7 @@ $favicon = $settings['favicon_file'] ?? '';
 <meta name="theme-color" content="#141414">
 <?php if (!empty($favicon)): ?><link rel="icon" href="<?= e($favicon) ?>"><?php endif; ?>
 <title><?= e($settings['site_title'] ?? 'decurio – records & links') ?></title>
-<link rel="stylesheet" href="assets/css/site.css">
+<link rel="stylesheet" href="<?= e(asset_url('assets/css/site.css')) ?>">
 <style><?= design_vars($settings) ?></style>
 </head>
 <body>
