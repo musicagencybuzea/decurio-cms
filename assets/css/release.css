@@ -49,7 +49,7 @@ body.release-page {
    - knob 1 (--rel-gap)  = cover <-> titles
    - knob 2 (--rel-gap2) = titles <-> link box
    - the social icons hang off the link box with a FIXED distance: they ride up/down with it */
-.release-cover { margin-top: 6px; }
+.release-cover { margin-top: var(--rel-cov, 6px); }
 .release-head { margin-top: var(--rel-gap, 6px); }
 .link-box { margin-top: var(--rel-gap2, 6px); }
 .socials { margin-top: 18px; }
@@ -218,9 +218,11 @@ body.release-page {
 .release-cover { position: relative; } /* anchors the stickers */
 
 /* ---------- v1.4 phase 2 ---------- */
-/* a sticker overhangs above the cover: only the cover slides down (margin), so the
-   return link (decur.io, top-centre) stays pinned at the very top of the page */
-.has-sticker .release-cover { margin-top: 10%; }
+/* a sticker overhangs above the cover: only the cover slides down, so the
+   return link (decur.io, top-centre) stays pinned at the very top of the page.
+   The overhang (10%) is ADDED to the "label link <-> cover" setting, so raising
+   that setting pushes the cover + sticker further down, clear of the logo. */
+.has-sticker .release-cover { margin-top: calc(var(--rel-cov, 6px) + 10%); }
 /* manual control of the link text colour (Settings - Design): wins over the automatic
    light-background contrast rule as soon as a choice is made */
 .release-page.ink-clair .link-box .rlink,

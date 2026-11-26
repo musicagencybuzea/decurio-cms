@@ -271,6 +271,7 @@ return [
         'albums.bg.adapt3' => 'Adapted 3',
         'library.rename' => 'Rename',
         'settings.design_rel_gap2' => 'Release page — space between the titles and the link box',
+        'settings.design_rel_cov' => 'Release page — space between the label link and the cover',
     ],
     'fr' => [
         'nav.dashboard' => 'Tableau de bord',
@@ -541,6 +542,7 @@ return [
         'albums.bg.adapt3' => 'Adaptée 3',
         'library.rename' => 'Renommer',
         'settings.design_rel_gap2' => 'Page release — espace entre les titres et la box de liens',
+        'settings.design_rel_cov' => 'Page release — espace entre le lien du label et la pochette',
     ],
     'de' => [
         'nav.dashboard' => 'Übersicht',
@@ -811,5 +813,6 @@ return [
         'albums.bg.adapt3' => 'Angepasst 3',
         'library.rename' => 'Umbenennen',
         'settings.design_rel_gap2' => 'Release-Seite — Abstand zwischen Titeln und Link-Box',
+        'settings.design_rel_cov' => 'Release-Seite — Abstand zwischen Label-Link und Cover',
     ],
 ];
