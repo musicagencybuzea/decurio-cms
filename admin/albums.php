@@ -138,6 +138,20 @@ function collect_album_post(bool $forPreview): array
     $out['slots'] = $slots;
 
     $out['bg'] = in_array($_POST['bg_preset'] ?? 'noir', BG_PRESETS, true) ? $_POST['bg_preset'] : 'noir';
+    // video/Canvas background: library reference (validated); a freshly uploaded file overrides it
+    $out['video_id'] = null;
+    if ($out['bg'] === 'video') {
+        $vid = (int)($_POST['video_id'] ?? 0);
+        if ($vid > 0) {
+            try {
+                $ex = db()->prepare('SELECT id FROM videos WHERE id=?');
+                $ex->execute([$vid]);
+                if ($ex->fetch()) $out['video_id'] = $vid;
+            } catch (Throwable $e2) {
+                $out['video_id'] = null; // videos table not migrated yet
+            }
+        }
+    }
     $out['box_color'] = in_array($_POST['box_color'] ?? 'auto', BOX_COLORS, true) ? $_POST['box_color'] : 'auto';
     $out['box_transparent'] = isset($_POST['box_transparent']) ? 1 : 0;
     // link text colour for this release's link box on the exclusive page ("" = automatic)
@@ -188,13 +202,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['preview_mode'])) {
 
     $cover = resolve_cover($id);
 
+    // video/Canvas background: a freshly uploaded file goes straight into the video library
+    $newVideoId = save_video_upload();
+    if ($newVideoId) $p['video_id'] = $newVideoId;
+
     if ($id) {
-        $q = db()->prepare('UPDATE albums SET title=?,subtitle=?,is_single=?,release_number=?,artists=?,cover_path=?,links_json=?,socials_json=?,extra_socials_json=?,sticker_slots_json=?,bg_preset=?,box_color=?,box_transparent=?,link_text=?,release_date=?,publish_at=?,status=?,updated_at=NOW() WHERE id=?');
-        $q->execute([$p['title'], $p['subtitle'], $p['is_single'], $p['release_number'] !== '' ? $p['release_number'] : null, $p['artists'], $cover, json_encode($p['links'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['socials'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['extras'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null, ($p['stickers_on'] ? json_encode($p['slots']) : null), $p['bg'], $p['box_color'], $p['box_transparent'], $p['link_text'] !== '' ? $p['link_text'] : null, $p['release_date'] !== '' ? $p['release_date'] : null, $publishAt, $status, $id]);
+        $q = db()->prepare('UPDATE albums SET title=?,subtitle=?,is_single=?,release_number=?,artists=?,cover_path=?,links_json=?,socials_json=?,extra_socials_json=?,sticker_slots_json=?,bg_preset=?,video_id=?,box_color=?,box_transparent=?,link_text=?,release_date=?,publish_at=?,status=?,updated_at=NOW() WHERE id=?');
+        $q->execute([$p['title'], $p['subtitle'], $p['is_single'], $p['release_number'] !== '' ? $p['release_number'] : null, $p['artists'], $cover, json_encode($p['links'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['socials'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['extras'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null, ($p['stickers_on'] ? json_encode($p['slots']) : null), $p['bg'], $p['video_id'], $p['box_color'], $p['box_transparent'], $p['link_text'] !== '' ? $p['link_text'] : null, $p['release_date'] !== '' ? $p['release_date'] : null, $publishAt, $status, $id]);
     } else {
         $min = (int)db()->query('SELECT COALESCE(MIN(sort_order),10) FROM albums')->fetchColumn();
-        $q = db()->prepare('INSERT INTO albums(title,subtitle,is_single,release_number,artists,cover_path,links_json,socials_json,extra_socials_json,sticker_slots_json,bg_preset,box_color,box_transparent,link_text,release_date,publish_at,status,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
-        $q->execute([$p['title'], $p['subtitle'], $p['is_single'], $p['release_number'] !== '' ? $p['release_number'] : null, $p['artists'], $cover, json_encode($p['links'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['socials'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['extras'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null, ($p['stickers_on'] ? json_encode($p['slots']) : null), $p['bg'], $p['box_color'], $p['box_transparent'], $p['link_text'] !== '' ? $p['link_text'] : null, $p['release_date'] !== '' ? $p['release_date'] : null, $publishAt, $status, $min - 10]);
+        $q = db()->prepare('INSERT INTO albums(title,subtitle,is_single,release_number,artists,cover_path,links_json,socials_json,extra_socials_json,sticker_slots_json,bg_preset,video_id,box_color,box_transparent,link_text,release_date,publish_at,status,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
+        $q->execute([$p['title'], $p['subtitle'], $p['is_single'], $p['release_number'] !== '' ? $p['release_number'] : null, $p['artists'], $cover, json_encode($p['links'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['socials'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['extras'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null, ($p['stickers_on'] ? json_encode($p['slots']) : null), $p['bg'], $p['video_id'], $p['box_color'], $p['box_transparent'], $p['link_text'] !== '' ? $p['link_text'] : null, $p['release_date'] !== '' ? $p['release_date'] : null, $publishAt, $status, $min - 10]);
     }
     unset($_SESSION['preview_snapshot']); // saved version now matches the preview
     redirect('releases.php?saved=1');
@@ -211,6 +229,11 @@ $platforms = db()->query('SELECT * FROM platforms WHERE active=1 ORDER BY sort_o
 $preferred = array_values(array_filter($platforms, fn($p) => !empty($p['preferred'])));
 $others = array_values(array_filter($platforms, fn($p) => empty($p['preferred'])));
 $stickers = db()->query('SELECT id, name, image_path FROM stickers ORDER BY name')->fetchAll();
+try {
+    $videos = db()->query('SELECT id, name, file_path FROM videos ORDER BY name')->fetchAll();
+} catch (Throwable $e) {
+    $videos = []; // videos table not migrated yet
+}
 $editLinks = $edit ? (json_decode($edit['links_json'] ?: '[]', true) ?: []) : [];
 $editSlots = $edit ? (json_decode($edit['sticker_slots_json'] ?: '[]', true) ?: []) : [];
 $socials = $edit ? (json_decode($edit['socials_json'] ?: '[]', true) ?: []) : [];
@@ -366,17 +389,47 @@ admin_page_open(t('albums.manage'), 'albums');
         <p class="check-row"><button type="button" id="add-social" class="linklike">&plus; <?= e(t('albums.field.more_socials')) ?></button></p>
 
         <h3><?= e(t('albums.field.appearance')) ?></h3>
+        <?php $bgVal = (string)($edit['bg_preset'] ?? 'noir');
+        if ($bgVal === 'blur') $bgVal = 'blur2'; // legacy value from v1.2
+        $bgGroup = str_starts_with($bgVal, 'blur') ? 'blur'
+            : (in_array($bgVal, ['noir', 'gris', 'blanc', 'beige', 'rose'], true) ? 'solid'
+            : ($bgVal === 'ambilight' ? 'ambilight' : 'video')); ?>
+        <input type="hidden" name="bg_preset" id="bg_preset" value="<?= e($bgVal) ?>">
         <label><?= e(t('albums.field.background')) ?></label>
-        <div class="swatches">
-            <?php foreach ([['noir', 'albums.bg.black', '#141414'], ['gris', 'albums.bg.grey', '#4d4d4d'], ['blanc', 'albums.bg.white', '#f0f0f0'], ['beige', 'albums.bg.beige', '#d6b399'], ['rose', 'albums.bg.rose', '#f05078'], ['blur', 'albums.bg.blur', null]] as [$val, $lab, $color]): ?>
+        <div class="bg-choice">
+            <?php foreach ([['blur', 'albums.bg.blur'], ['solid', 'albums.bg.solid'], ['ambilight', 'albums.bg.ambilight'], ['video', 'albums.bg.video']] as [$g, $k]): ?>
                 <p class="swatch-choice">
-                    <input type="radio" id="bg-<?= e($val) ?>" name="bg_preset" value="<?= e($val) ?>" <?= ($edit['bg_preset'] ?? 'noir') === $val ? 'checked' : '' ?>>
-                    <label class="inline" for="bg-<?= e($val) ?>">
-                        <?php if ($color): ?><span class="swatch" style="background:<?= $color ?>"></span><?php else: ?><span class="swatch swatch-blur">&#9650;</span><?php endif; ?>
-                        <?= e(t($lab)) ?>
-                    </label>
+                    <input type="radio" id="bgc-<?= e($g) ?>" name="bg_group" value="<?= e($g) ?>" <?= $bgGroup === $g ? 'checked' : '' ?>>
+                    <label class="inline" for="bgc-<?= e($g) ?>"><?= e(t($k)) ?></label>
                 </p>
             <?php endforeach; ?>
+        </div>
+        <div class="bg-sub" data-sub="blur" <?= $bgGroup === 'blur' ? '' : 'hidden' ?>>
+            <label for="bg_blur_grade"><?= e(t('albums.bg.blur_degree')) ?></label>
+            <select id="bg_blur_grade" name="bg_blur_grade">
+                <option value="1" <?= $bgVal === 'blur1' ? 'selected' : '' ?>><?= e(t('albums.bg.blur1')) ?></option>
+                <option value="2" <?= $bgVal === 'blur2' ? 'selected' : '' ?>><?= e(t('albums.bg.blur2')) ?></option>
+                <option value="3" <?= $bgVal === 'blur3' ? 'selected' : '' ?>><?= e(t('albums.bg.blur3')) ?></option>
+            </select>
+        </div>
+        <div class="bg-sub" data-sub="solid" <?= $bgGroup === 'solid' ? '' : 'hidden' ?>>
+            <label for="bg_solid"><?= e(t('albums.bg.solid')) ?></label>
+            <select id="bg_solid" name="bg_solid">
+                <?php foreach ([['noir', 'albums.bg.black', '#141414'], ['gris', 'albums.bg.grey', '#4d4d4d'], ['blanc', 'albums.bg.white', '#f0f0f0'], ['beige', 'albums.bg.beige', '#d6b399'], ['rose', 'albums.bg.rose', '#f05078']] as [$v, $k2, $c2]): ?>
+                    <option value="<?= e($v) ?>" <?= $bgVal === $v ? 'selected' : '' ?>><?= e(t($k2)) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="bg-sub" data-sub="video" <?= $bgGroup === 'video' ? '' : 'hidden' ?>>
+            <label for="bg_video_file"><?= e(t('albums.bg.video_upload')) ?></label>
+            <input type="file" id="bg_video_file" name="bg_video" accept="video/mp4,video/webm">
+            <label for="video_id"><?= e(t('albums.bg.video_lib')) ?></label>
+            <select id="video_id" name="video_id">
+                <option value=""><?= e(t('albums.bg.video_none')) ?></option>
+                <?php foreach ($videos as $v): ?>
+                    <option value="<?= (int)$v['id'] ?>" <?= (string)($edit['video_id'] ?? '') === (string)$v['id'] ? 'selected' : '' ?>><?= e($v['name']) ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <label for="box_color"><?= e(t('albums.field.box_color')) ?></label>
         <select id="box_color" name="box_color">
@@ -640,12 +693,42 @@ function T_action(o) {
     }[o] || o;
 }
 
+/* Design background: 4 choices, each revealing its own sub-panel.
+   The hidden bg_preset input always carries the final value for save + preview. */
+(function () {
+    var hidden = document.getElementById('bg_preset');
+    function syncBg() {
+        var g = document.querySelector('input[name="bg_group"]:checked');
+        var group = g ? g.value : 'blur';
+        document.querySelectorAll('.bg-sub').forEach(function (p) {
+            p.hidden = p.getAttribute('data-sub') !== group;
+        });
+        if (!hidden) return;
+        if (group === 'blur') {
+            var grade = document.getElementById('bg_blur_grade');
+            hidden.value = 'blur' + (grade ? grade.value : '2');
+        } else if (group === 'solid') {
+            var solid = document.getElementById('bg_solid');
+            hidden.value = solid ? solid.value : 'noir';
+        } else if (group === 'ambilight') {
+            hidden.value = 'ambilight';
+        } else {
+            hidden.value = 'video';
+        }
+    }
+    document.querySelectorAll('input[name="bg_group"], #bg_blur_grade, #bg_solid, #video_id')
+        .forEach(function (el) { el.addEventListener('change', syncBg); });
+    if (hidden) window.syncBg = syncBg;
+    syncBg();
+})();
+
 /* inline live preview (phase 2):
    1) the click always reveals the panel;
    2) the form state is POSTed to preview.php via fetch (snapshot in the session);
    3) the preview page is then FETCHED (parent context → session cookies guaranteed)
       and injected via srcdoc with <base href="/"> so relative URLs resolve.
-   The iframe never does its own navigation — the "Preview not found" wording is gone. */
+   Both requests carry a cache-buster + no-store: the preview can never show a
+   stale "same thing" again — the earlier symptom was browser/host caching. */
 (function () {
     var btn = document.querySelector('[name=preview_mode]');
     var panel = document.getElementById('preview-panel');
@@ -662,15 +745,23 @@ function T_action(o) {
         ev.preventDefault();
         var form = btn.closest('form');
         if (!form) return;
+        if (window.syncBg) window.syncBg(); // final bg choice before snapshotting
+        var t = Date.now();
         var fd = new FormData(form);
         fd.set('preview_mode', '1');
         if (iframe) iframe.srcdoc = WAIT;
-        fetch('preview.php', { method: 'POST', body: fd })
-            .then(function () {
-                return fetch('/?preview=1&lang=' + LANG).then(function (r) { return r.text(); });
+        fetch('preview.php?t=' + t, { method: 'POST', body: fd, cache: 'no-store' })
+            .then(function (r) {
+                if (!r.ok) throw new Error('snapshot failed');
+                return fetch('/?preview=1&lang=' + LANG + '&t=' + Date.now(), { cache: 'no-store' });
+            })
+            .then(function (r) {
+                if (!r.ok) throw new Error('preview failed');
+                return r.text();
             })
             .then(function (html) {
                 if (iframe) iframe.srcdoc = html.replace('<head>', '<head><base href="/">');
+                if (tab) tab.href = '/?preview=1&lang=' + LANG + '&x=' + Date.now();
             })
             .catch(function () {
                 form.target = 'preview_frame';

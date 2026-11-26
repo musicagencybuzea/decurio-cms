@@ -46,6 +46,13 @@ $byPlatform = q_rows(
     "platform, source, COUNT(*) AS c",
     $where, $par, 'platform, source', 'c DESC'
 );
+// Combined per-platform totals (both pages summed — Spotify vs the label’s own website, etc.)
+$allPlatforms = q_rows(
+    "platform, COUNT(*) AS c",
+    $where, $par, 'platform', 'c DESC'
+);
+$maxAll = 0;
+foreach ($allPlatforms as $r) $maxAll = max($maxAll, (int)$r['c']);
 $mainStats = [];
 $relStats = [];
 $maxMain = 0; $maxRel = 0;
@@ -137,6 +144,11 @@ function bars_for(array $rows, int $max): string
         <?= bars_for($relStats, $maxRel) ?: '<p class="small">' . e(t('stats.no_data')) . '</p>' ?>
     </section>
 </div>
+
+<section class="stat-section">
+    <h2><?= e(t('stats.by_platform_all')) ?></h2>
+    <?= bars_for($allPlatforms, $maxAll) ?: '<p class="small">' . e(t('stats.no_data')) . '</p>' ?>
+</section>
 
 <?php if ($scope === 0 && $topReleases): ?>
 <section class="stat-section">

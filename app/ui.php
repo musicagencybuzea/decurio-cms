@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 const BOX_COLORS = ['auto', 'noir', 'gris', 'blanc', 'beige', 'rose'];
-const BG_PRESETS = ['noir', 'gris', 'blanc', 'beige', 'rose', 'blur'];
+const BG_PRESETS = ['noir', 'gris', 'blanc', 'beige', 'rose', 'blur1', 'blur2', 'blur3', 'ambilight', 'video'];
 const STICKER_POSITIONS = ['tl', 'tc', 'tr'];
 const LINK_ACTIONS = ['play', 'buy', 'download', 'visit', 'listen', 'learn', 'subscribe', 'join', 'support'];
 
@@ -65,6 +65,25 @@ function action_label(string $action): string
     return mb_strtoupper(t('action.play'));
 }
 
+/** Store an uploaded video/Canvas file into the video library; returns its id (or null). */
+function save_video_upload(): ?int
+{
+    if (empty($_FILES['bg_video']['name']) || ($_FILES['bg_video']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) return null;
+    $f = $_FILES['bg_video'];
+    if ($f['size'] > 48 * 1024 * 1024) fail(t('videos.err.too_large'));
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($f['tmp_name']);
+    $allowed = ['video/mp4' => 'mp4', 'video/webm' => 'webm'];
+    if (!isset($allowed[$mime])) fail(t('videos.err.video'));
+    $dir = ROOT . '/uploads/videos';
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    $filename = bin2hex(random_bytes(16)) . '.' . $allowed[$mime];
+    if (!move_uploaded_file($f['tmp_name'], $dir . '/' . $filename)) fail(t('videos.err.save'));
+    $name = trim((string)($_POST['bg_video_name'] ?? ''));
+    if ($name === '') $name = 'Canvas ' . date('Y-m-d H:i');
+    db()->prepare('INSERT INTO videos(name,file_path) VALUES(?,?)')->execute([$name, 'uploads/videos/' . $filename]);
+    return (int)db()->lastInsertId();
+}
+
 /** Shared public link row: platform logo (or name) left, fixed-size action button right. */
 function link_row_html(array $link, string $classes = ''): string
 {
@@ -116,12 +135,17 @@ HTML;
 function design_vars(array $s): string
 {
     $num = static function (string $k, int $d): int { return ($v = (int)round((float)($s[$k] ?? $d))) > 0 ? $v : $d; };
+    // like $num, but 0 is a valid choice (used for the release-page spacings)
+    $num0 = static function (string $k, int $d) use ($s): int {
+        if (!isset($s[$k]) || trim((string)$s[$k]) === '') return $d;
+        return max(0, (int)round((float)$s[$k]));
+    };
     $accent = in_array($s['design_accent'] ?? '', ['#141414', '#f0f0f0', '#d6b399', '#f05078'], true) ? $s['design_accent'] : '#f05078';
     $title = $num('design_main_title', 19);
     $meta = $num('design_main_meta', 15);
     $flag = $num('design_flag', 11);
-    $relTop = $num('design_rel_top', 38);
-    $relGap = $num('design_rel_gap', 16);
+    $relTop = $num0('design_rel_top', 38);
+    $relGap = $num0('design_rel_gap', 10);
     $relTitle = $num('design_rel_title', 24);
     $relSub = $num('design_rel_sub', 19);
     $relMeta = $num('design_rel_meta', 14);

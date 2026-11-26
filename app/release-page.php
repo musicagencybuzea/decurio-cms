@@ -15,6 +15,19 @@ function render_release_page(array $album, bool $preview): never
     $extraSocials = json_decode($album['extra_socials_json'] ?: '[]', true) ?: [];
     $stickers = album_stickers($album);
     $bg = in_array($album['bg_preset'] ?? 'noir', BG_PRESETS, true) ? $album['bg_preset'] : 'noir';
+    if ($bg === 'blur') $bg = 'blur2'; // legacy value from v1.2 = medium blur
+    // video/Canvas background: resolve the library reference (table may not exist yet)
+    $bgVideoPath = '';
+    if ($bg === 'video' && !empty($album['video_id'])) {
+        try {
+            $vq = db()->prepare('SELECT file_path FROM videos WHERE id=?');
+            $vq->execute([(int)$album['video_id']]);
+            $bgVideoPath = (string)$vq->fetchColumn();
+        } catch (Throwable $e) {
+            $bgVideoPath = ''; // videos table not migrated yet → fall back to noir
+        }
+        if ($bgVideoPath === '') { $bg = 'noir'; $album['bg_preset'] = 'noir'; }
+    }
     $box = in_array($album['box_color'] ?? 'auto', BOX_COLORS, true) ? $album['box_color'] : 'auto';
     $transparent = !empty($album['box_transparent']);
     $releaseDate = (string)($album['release_date'] ?? '');
@@ -37,8 +50,11 @@ function render_release_page(array $album, bool $preview): never
 <style><?= design_vars($settings) ?></style>
 </head>
 <body class="release-page bg-<?= e($bg) ?><?= e($inkClass) ?><?= $stickerClass ?>">
-<?php if ($bg === 'blur' && !empty($album['cover_path'])): ?>
-<div class="bg-blur-layer" style="background-image:url('<?= e($album['cover_path']) ?>')"></div>
+<?php if (str_starts_with($bg, 'blur') && !empty($album['cover_path'])): ?>
+<div class="bg-blur-layer blur-g<?= e(substr($bg, -1)) ?>" style="background-image:url('<?= e($album['cover_path']) ?>')"></div>
+<?php endif; ?>
+<?php if ($bg === 'video' && $bgVideoPath !== ''): ?>
+<video class="bg-canvas-video" src="/<?= e($bgVideoPath) ?>" autoplay muted loop playsinline></video>
 <?php endif; ?>
 <?php if ($preview): ?><div class="preview-banner">PREVIEW</div><?php endif; ?>
 
@@ -46,6 +62,9 @@ function render_release_page(array $album, bool $preview): never
     <a class="release-brand" href="/">decur.io</a>
 
     <section class="release-cover">
+        <?php if ($bg === 'ambilight' && !empty($album['cover_path'])): ?>
+            <img class="ambilight-glow" src="<?= e($album['cover_path']) ?>" alt="" aria-hidden="true">
+        <?php endif; ?>
         <?php foreach ($stickers as $sticker): ?>
             <img class="sticker st-<?= e($sticker['size'] ?? '2') ?> pos-<?= e($sticker['position']) ?>" src="<?= e($sticker['image']) ?>" alt="<?= e($sticker['name']) ?>">
         <?php endforeach; ?>

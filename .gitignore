@@ -7,3 +7,5 @@ uploads/stickers/*
 !uploads/stickers/.htaccess
 .DS_Store
 Thumbs.db
+uploads/videos/*
+!uploads/videos/.htaccess

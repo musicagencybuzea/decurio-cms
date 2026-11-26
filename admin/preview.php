@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 csrf_check();
+header('Cache-Control: no-store, max-age=0'); // the preview must never come from a cache
 
 $p = collect_album_post(true);
 
@@ -51,6 +52,7 @@ $_SESSION['preview_snapshot'] = [
     'extra_socials_json' => json_encode($p['extras'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null,
     'sticker_slots_json' => $p['stickers_on'] ? json_encode($p['slots']) : null,
     'bg_preset' => $p['bg'],
+    'video_id' => save_video_upload() ?: ($p['video_id'] ?? null),
     'box_color' => $p['box_color'],
     'box_transparent' => $p['box_transparent'],
     'link_text' => $p['link_text'] !== '' ? $p['link_text'] : null,

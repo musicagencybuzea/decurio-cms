@@ -40,7 +40,7 @@ body.release-page {
   padding: var(--rel-top, 38px) 22px 72px;
   display: flex;
   flex-direction: column;
-  gap: var(--rel-gap, 16px);
+  gap: var(--rel-gap, 10px);
 }
 
 .release-brand {
@@ -213,3 +213,37 @@ body.release-page {
 .release-page.ink-clair .link-box .small { color: #f0f0f0 !important; }
 .release-page.ink-fonce .link-box .rlink,
 .release-page.ink-fonce .link-box .small { color: #141414 !important; }
+
+/* ---------- v1.4 phase 2: 4 background designs ---------- */
+/* blur grades (base .bg-blur-layer stays) */
+.blur-g1 { filter: blur(18px) saturate(.65); opacity: .22; }
+.blur-g2 { filter: blur(36px) saturate(.7); opacity: .3; }
+.blur-g3 { filter: blur(70px) saturate(.75); opacity: .4; }
+/* Ambilight: oversized, heavily blurred copy of the cover glowing behind it */
+.bg-ambilight { background: #141414; color: #f0f0f0; }
+.ambilight-glow {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 120%; height: 120%;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  filter: blur(55px) saturate(1.6);
+  opacity: .8;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 12px;
+}
+.release-cover { z-index: 0; }
+.release-cover img.cover-img, .release-cover .cover-placeholder { position: relative; z-index: 1; }
+/* Video / Canvas background: always fully visible, black bars complete the sides */
+.bg-video { background: #141414; color: #f0f0f0; }
+video.bg-canvas-video {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  background: #141414;
+  z-index: -1;
+  pointer-events: none;
+}
