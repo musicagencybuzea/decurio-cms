@@ -384,8 +384,13 @@ admin_page_open(t('albums.manage'), 'albums');
         <p class="check-row"><input type="checkbox" id="box_transparent" name="box_transparent" value="1" <?= !empty($edit['box_transparent']) ? 'checked' : '' ?>><label class="inline" for="box_transparent"><?= e(t('albums.box.transparent')) ?></label></p>
 
         <p class="form-actions">
-            <button type="submit" name="preview_mode" value="1" formaction="preview.php" formmethod="post" target="_blank"><?= e(t('albums.preview')) ?> &nearr;</button>
+            <button type="submit" name="preview_mode" value="1" formaction="preview.php" formmethod="post" formtarget="preview_frame"><?= e(t('albums.preview')) ?> &nearr;</button>
         </p>
+        <p class="form-actions"><a class="small-open" href="#" id="open-preview-tab" target="_blank" hidden><?= e(t('albums.preview_tab')) ?> &nearr;&nearr;</a></p>
+        <div class="preview-panel" id="preview-panel" hidden>
+            <p class="small"><?= e(t('albums.preview_live')) ?></p>
+            <iframe name="preview_frame" title="preview"></iframe>
+        </div>
     </div>
 
     <div class="form-box">
@@ -624,5 +629,20 @@ function T_action(o) {
         custom: <?= json_encode(t('action.custom')) ?>
     }[o] || o;
 }
+
+/* inline live preview: clicking Preview renders the release page inside the form */
+(function () {
+    var btn = document.querySelector('[name=preview_mode]');
+    var panel = document.getElementById('preview-panel');
+    var tab = document.getElementById('open-preview-tab');
+    if (btn && panel) {
+        btn.addEventListener('click', function () { panel.hidden = false; if (tab) tab.hidden = false; });
+    }
+    if (tab && panel) {
+        // after an inline preview, the snapshot lives in the session: this link shows the
+        // SAME preview full-size in a new tab, no re-submission needed
+        tab.href = '../?preview=1';
+    }
+})();
 </script>
 <?php admin_page_close();

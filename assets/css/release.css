@@ -202,3 +202,14 @@ body.release-page {
 /* ---------- v1.3 / v1.4 ---------- */
 .release-artists .artist { white-space: nowrap; }
 .release-cover { position: relative; } /* anchors the stickers */
+
+/* ---------- v1.4 phase 2 ---------- */
+/* a sticker overhangs above the cover: push the whole page down so the return link
+   (decur.io, top-centre) stays visible and clickable */
+.has-sticker .release-wrap { padding-top: calc(var(--rel-top, 38px) + 9%); }
+/* manual control of the link text colour (Settings - Design): wins over the automatic
+   light-background contrast rule as soon as a choice is made */
+.release-page.ink-clair .link-box .rlink,
+.release-page.ink-clair .link-box .small { color: #f0f0f0 !important; }
+.release-page.ink-fonce .link-box .rlink,
+.release-page.ink-fonce .link-box .small { color: #141414 !important; }

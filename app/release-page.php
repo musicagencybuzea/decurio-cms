@@ -18,7 +18,10 @@ function render_release_page(array $album, bool $preview): never
     $box = in_array($album['box_color'] ?? 'auto', BOX_COLORS, true) ? $album['box_color'] : 'auto';
     $transparent = !empty($album['box_transparent']);
     $releaseDate = (string)($album['release_date'] ?? '');
-
+    // v1.4 phase 2: manual link-text colour (auto by default) + sticker-aware page spacing
+    $inkSetting = (string)($settings['design_link_text'] ?? '');
+    $inkClass = $inkSetting === 'clair' ? ' ink-clair' : ($inkSetting === 'fonce' ? ' ink-fonce' : '');
+    $stickerClass = $stickers ? ' has-sticker' : '';
 
     http_response_code(200);
     ?>
@@ -33,7 +36,7 @@ function render_release_page(array $album, bool $preview): never
 <link rel="stylesheet" href="/assets/css/release.css">
 <style><?= design_vars($settings) ?></style>
 </head>
-<body class="release-page bg-<?= e($bg) ?>">
+<body class="release-page bg-<?= e($bg) ?><?= e($inkClass) ?><?= $stickerClass ?>">
 <?php if ($bg === 'blur' && !empty($album['cover_path'])): ?>
 <div class="bg-blur-layer" style="background-image:url('<?= e($album['cover_path']) ?>')"></div>
 <?php endif; ?>

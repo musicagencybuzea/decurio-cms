@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'design_main_meta' => (string)((int)($_POST['design_main_meta'] ?? 0) ?: 15),
         'design_flag' => (string)((int)($_POST['design_flag'] ?? 0) ?: 11),
         'design_accent' => in_array($_POST['design_accent'] ?? '', ['#141414', '#f0f0f0', '#d6b399', '#f05078'], true) ? $_POST['design_accent'] : '#f05078',
+        'design_link_text' => in_array($_POST['design_link_text'] ?? '', ['', 'clair', 'fonce'], true) ? ($_POST['design_link_text'] ?? '') : '',
         'design_rel_top' => (string)((int)($_POST['design_rel_top'] ?? 0) ?: 38),
         'design_rel_gap' => (string)((int)($_POST['design_rel_gap'] ?? 0) ?: 16),
         'design_rel_title' => (string)((int)($_POST['design_rel_title'] ?? 0) ?: 24),
@@ -85,6 +86,15 @@ admin_page_open(t('settings.title'), 'settings');
                 <?php foreach (['#f05078' => '#f05078', '#d6b399' => '#d6b399', '#f0f0f0' => '#f0f0f0', '#141414' => '#141414'] as $hex): ?>
                     <option value="<?= $hex ?>" <?= ($s['design_accent'] ?? '#f05078') === $hex ? 'selected' : '' ?>><?= $hex ?></option>
                 <?php endforeach; ?>
+            </select>
+        </div>
+        <div>
+            <label for="design_link_text"><?= e(t('settings.design_link_text')) ?></label>
+            <select id="design_link_text" name="design_link_text">
+                <?php $inkVal = (string)($s['design_link_text'] ?? ''); ?>
+                <option value="" <?= $inkVal === '' ? 'selected' : '' ?>><?= e(t('settings.design_link_text.auto')) ?></option>
+                <option value="clair" <?= $inkVal === 'clair' ? 'selected' : '' ?>><?= e(t('settings.design_link_text.light')) ?></option>
+                <option value="fonce" <?= $inkVal === 'fonce' ? 'selected' : '' ?>><?= e(t('settings.design_link_text.dark')) ?></option>
             </select>
         </div>
         <div>

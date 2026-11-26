@@ -387,3 +387,15 @@ select option:checked, select option:hover { background: #d6b399; color: #141414
 /* checkboxes stay glued to their label, not the next question */
 .check-row { margin: 12px 0 0; }
 .check-row label.inline { margin: 0; }
+
+/* inline live preview (phase 2): the exclusive page renders inside the form */
+.preview-panel { margin: 14px 0 0; }
+.preview-panel iframe {
+  width: 440px; max-width: 100%;
+  height: 760px;
+  border: 1px solid #4d4d4d;
+  background: #141414;
+  display: block;
+}
+.small-open { font-size: .78rem; color: inherit; opacity: .7; }
+.small-open:hover { opacity: 1; }
