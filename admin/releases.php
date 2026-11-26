@@ -30,7 +30,6 @@ $albums = $albums->fetchAll();
 admin_page_open(t('releases.title'), 'releases');
 ?>
 <h1><?= e(t('releases.title')) ?></h1>
-<p class="subtitle"><?= e(t('releases.subtitle')) ?></p>
 
 <?php if (isset($_GET['saved'])): ?><p class="notice success"><?= e(t('albums.saved')) ?></p><?php endif; ?>
 
@@ -60,7 +59,7 @@ admin_page_open(t('releases.title'), 'releases');
             <?php if ($pageUrl !== ''): ?>
                 &middot; <a class="rowlink" href="../<?= e(ltrim($pageUrl, '/')) ?>" target="_blank" rel="noopener"><?= e($pageUrl) ?></a>
             <?php else: ?>
-                &middot; <a class="rowlink" href="../?preview=<?= (int)$a['id'] ?>&lang=<?= e(lang()) ?>" target="_blank" rel="noopener"><?= e(t('albums.preview')) ?> &nearr;</a>
+                &middot; <span class="small"><?= e(t('albums.preview_in_form')) ?></span>
             <?php endif; ?>
             &middot;
             <form method="post" onsubmit="return confirm('<?= e(t('albums.confirm_delete')) ?>')">
@@ -78,13 +77,14 @@ admin_page_open(t('releases.title'), 'releases');
 <script>
 const CSRF = <?= json_encode(csrf_token()) ?>;
 
-// Reordering: drag & drop, with up/down fallback if the CDN is unreachable
+// Reordering: drag & drop, with up/down fallback if the CDN is unreachable.
+// Sends the new order via fetch — the page never reloads, the scroll position is kept.
 function submitOrder() {
     const ids = [...document.querySelectorAll('#release-rows tr')].map(tr => tr.dataset.id);
-    const f = document.createElement('form');
-    f.method = 'post';
-    f.innerHTML = '<input name="csrf" value="' + CSRF + '"><input name="reorder_ids" value="' + ids.join(',') + '">';
-    document.body.appendChild(f); f.submit();
+    const body = new FormData();
+    body.append('csrf', CSRF);
+    body.append('reorder_ids', ids.join(','));
+    fetch('releases.php', { method: 'POST', body }).catch(() => {});
 }
 if (window.Sortable) {
     new Sortable(document.getElementById('release-rows'), { handle: '.drag-cell', animation: 150, onEnd: submitOrder });

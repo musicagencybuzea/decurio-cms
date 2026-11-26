@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-const SUPPORTED_LANGS = ['en', 'fr', 'de'];
+const SUPPORTED_LANGS = ['en', 'de', 'fr'];
 
 function lang(): string
 {

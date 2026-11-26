@@ -11,7 +11,6 @@ if (!in_array($section, ['platforms', 'stickers', 'music'], true)) $section = 'p
 admin_page_open(t('nav.library'), 'library');
 ?>
 <h1><?= e(t('nav.library')) ?></h1>
-<p class="subtitle"><?= e(t('library.subtitle')) ?></p>
 
 <div class="subtabs">
     <a class="subtab<?= $section === 'platforms' ? ' active' : '' ?>" href="library.php?section=platforms"><?= e(t('platforms.title')) ?></a>

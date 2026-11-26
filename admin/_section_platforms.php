@@ -85,12 +85,13 @@ $platforms = db()->query('SELECT * FROM platforms ORDER BY sort_order, name')->f
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
 <script>
 const CSRF_LIB = <?= json_encode(csrf_token()) ?>;
+// Sends the new order via fetch — no reload, scroll position kept.
 function submitPlatformOrder() {
     const ids = [...document.querySelectorAll('#platform-rows tr')].map(tr => tr.dataset.id);
-    const f = document.createElement('form');
-    f.method = 'post';
-    f.innerHTML = '<input name="csrf" value="' + CSRF_LIB + '"><input name="reorder_ids" value="' + ids.join(',') + '">';
-    document.body.appendChild(f); f.submit();
+    const body = new FormData();
+    body.append('csrf', CSRF_LIB);
+    body.append('reorder_ids', ids.join(','));
+    fetch('library.php?section=platforms', { method: 'POST', body }).catch(() => {});
 }
 if (window.Sortable) {
     new Sortable(document.getElementById('platform-rows'), { handle: '.drag-cell', animation: 150, onEnd: submitPlatformOrder });

@@ -78,7 +78,11 @@ header { text-align: center; margin-bottom: 56px; }
   display: flex;
   flex-direction: column;
 }
-.face.front img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.9); }
+/* only the COVER fills the card — the stickers are separate layered images
+   (v1.4 bugfix: previously this selector also caught .sticker imgs, cropping them into a zoomed middle) */
+.face.front img.cover-img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.9); }
+/* v1.4 fix: la règle "img.sticker { width:auto }" était supprimée — elle écrasait les tailles S/M/L
+   (spécificité plus forte) sur la main page uniquement → stickers à taille naturelle = géants */
 .placeholder {
   flex: 1;
   display: flex;
@@ -108,6 +112,49 @@ header { text-align: center; margin-bottom: 56px; }
 .btn .arrow { color: var(--accent); }
 .btn.primary .arrow, .btn:hover .arrow { color: var(--ink); }
 
+/* public link row: platform logo (or name) left, fixed-size action button right */
+.rlink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--line-strong);
+  color: var(--paper);
+}
+.rlink .pl-logo { display: inline-flex; flex: none; }
+.rlink .pl-logo svg { width: 15px; height: 15px; }
+.rlink .pl-name {
+  flex: 1;
+  font: 400 .62rem var(--font-head);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  min-width: 0;
+}
+.rlink .act {
+  flex: none;
+  width: 7.5em;
+  padding: 7px 4px;
+  text-align: center;
+  border: 1px solid currentColor;
+  color: inherit;
+  text-decoration: none;
+  font: 400 .58rem var(--font-head);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.rlink .act:hover, .rlink.primary .act { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+/* many links: the back of the cover compacts automatically so that ALL rows fit */
+.face.back.links-many { padding: 10px 8px; gap: 4px; }
+.face.back.links-many .rlink { padding: 6px 7px; }
+.face.back.links-many .pl-logo svg { width: 13px; height: 13px; }
+.face.back.links-many .rlink .act { width: 6.4em; padding: 5px 3px; font-size: .55rem; }
+.face.back.links-lots { padding: 7px 6px; gap: 2px; }
+.face.back.links-lots .rlink { padding: 4px 6px; }
+.face.back.links-lots .rlink .act { width: 5.6em; padding: 4px 2px; font-size: .5rem; letter-spacing: .1em; }
+.face.back.links-lots .rlink .pl-name { font-size: .56rem; letter-spacing: .12em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.face.back.links-lots .pl-logo svg { width: 11px; height: 11px; }
+
 .hint {
   position: absolute;
   bottom: 0;
@@ -124,14 +171,15 @@ header { text-align: center; margin-bottom: 56px; }
 }
 .card:hover .hint { opacity: 1; }
 
+/* album title/subtitle/artists/mentions — sizes tuneable from Settings (px) */
 .album-title {
   margin-top: 14px;
-  font: 400 .88rem var(--font-head);
+  font: 400 var(--mp-title, 19px) var(--font-head);
   letter-spacing: .14em;
   text-transform: uppercase;
   line-height: 1.4;
 }
-.album-artists { margin-top: 4px; font-size: .8rem; color: var(--muted); line-height: 1.5; }
+.album-artists { margin-top: 5px; font-size: var(--mp-meta, 15px); color: var(--muted); line-height: 1.5; }
 
 footer {
   margin-top: 64px;
@@ -151,27 +199,37 @@ footer a { color: var(--accent); text-decoration: none; }
 .face.back { overflow: hidden; }
 .sticker {
   position: absolute;
-  width: 26%;
-  max-width: 110px;
   height: auto;
   z-index: 3;
   filter: drop-shadow(0 3px 6px rgba(20, 20, 20, .35));
   pointer-events: none;
 }
-.sticker.pos-tl { top: -11%; left: -7%; transform: rotate(-8deg); }
-.sticker.pos-tc { top: -12%; left: 37%; width: 20%; max-width: 84px; transform: rotate(2deg); }
-.sticker.pos-tr { top: -11%; right: -7%; transform: rotate(8deg); }
+/* three adjustable sizes (S = 15 %, M = 22 %, L = 30 % of the cover width) */
+.sticker.st-1 { width: 15%; }
+.sticker.st-2 { width: 22%; }
+.sticker.st-3 { width: 30%; }
+/* half of the sticker glued on the cover, the rest overhanging on the background — never cropped */
+.sticker.pos-tl { top: -9%; left: -10%; }
+.sticker.pos-tc { top: -11%; left: 39%; }
+.sticker.pos-tr { top: -9%; right: -10%; }
 
-/* album subtitle + single mention */
-.album-subtitle { margin-top: 3px; font-style: italic; font-size: .78rem; color: var(--sand); line-height: 1.5; }
-.album-single {
-  margin-top: 3px;
-  font: 400 .52rem var(--font-head);
-  letter-spacing: .3em;
+/* single + album-out mentions: pink, clearly visible */
+.album-flags {
+  margin-top: 7px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font: 400 var(--mp-flag, 11px) var(--font-head);
+  letter-spacing: .24em;
   text-transform: uppercase;
-  color: var(--accent);
-  opacity: .8;
 }
+.album-flags.centered { justify-content: center; }
+/* main page: SINGLE on one line, ALBUM OUT + date on its own line below */
+.album-flags.stacked { flex-direction: column; align-items: flex-start; gap: 3px; }
+/* release page: same stacking, but centred */
+.album-flags.stacked.centered { align-items: center; }
+.album-flags .flag { color: var(--accent); }
+
 a.album-meta { text-decoration: none; color: inherit; display: block; transition: color .2s; }
 a.album-meta:hover .album-title { color: var(--accent); }
 
@@ -225,17 +283,15 @@ a.album-meta:hover .album-title { color: var(--accent); }
 
 /* ---------- v1.3 ---------- */
 
-/* title a bit larger, subtitle follows the title design (same font & colour, no italics) */
-.album-title { font-size: .95rem; }
+/* subtitle follows the title design: same size, same colour, no italics, not uppercase */
 .album-subtitle {
-  font: 400 .78rem var(--font-head);
+  margin-top: 5px;
+  font: 400 var(--mp-title, 19px) var(--font-head);
   letter-spacing: .12em;
   text-transform: none;
   color: inherit;
-  opacity: .82;
-  margin-top: 4px;
+  line-height: 1.4;
 }
-.album-artists { margin-top: 5px; }
 /* artist names never break in the middle: wraps only happen after commas */
 .artist { white-space: nowrap; }
 
@@ -243,9 +299,7 @@ a.album-meta:hover .album-title { color: var(--accent); }
 a.album-meta:hover { color: var(--accent); }
 a.album-meta:hover .album-artists { color: var(--accent); }
 
-/* stickers: fully visible, straight, half of the sticker glued on the cover (like Opus Klassik) */
-.sticker.pos-tl { top: -11%; left: -13%; transform: none; }
-.sticker.pos-tc { top: -13%; left: 37%; transform: none; }
-.sticker.pos-tr { top: -11%; right: -13%; transform: none; }
+/* stickers: fully visible, straight, half of the sticker glued on the cover (like Opus Klassik)
+   v1.4: sizes S/M/L instead of one fixed size, nothing cropped */
 .grid { grid-template-columns: repeat(2, 1fr); gap: 56px 28px; row-gap: 56px; }
 @media (max-width: 560px) { .grid { grid-template-columns: 1fr; gap: 72px; } }

@@ -1,5 +1,6 @@
 # decurio CMS — Apache config (shared hosting, Febas)
-# Exclusive release pages: links.decur.io/007 -> index.php?num=007
+# Exclusive release pages: links.decur.io/007 (main release) or links.decur.io/007A
+# (a release linked to its main release, letter suffix) -> index.php?num=…
 
 # Force HTTPS: anyone typing http://links.decur.io is redirected to https://
 # (X-Forwarded-Proto check avoids redirect loops when a proxy terminates TLS)
@@ -22,7 +23,7 @@
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
-    RewriteRule ^([0-9]{1,4})/?$ index.php?num=$1 [L,QSA]
+    RewriteRule ^([0-9]{1,4}[A-Za-z]?)/?$ index.php?num=$1 [L,QSA]
 </IfModule>
 
 # Never expose config or dotfiles

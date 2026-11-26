@@ -321,18 +321,53 @@ td.status { letter-spacing: .06em; }
 .chip:hover { border-color: var(--accent); color: var(--accent); }
 .chip.on { background: var(--accent); border-color: var(--accent); color: var(--ink); }
 
-/* unified, draggable link list */
+/* unified, draggable link list: drag | name | url | action | remove */
 .link-item {
   display: grid;
-  grid-template-columns: auto minmax(110px, 1fr) minmax(160px, 1.9fr) auto;
+  grid-template-columns: auto minmax(100px, 1fr) minmax(150px, 1.5fr) minmax(150px, 11em) auto;
   gap: 8px;
   align-items: center;
   padding: 6px 0;
   border-bottom: 1px dotted var(--line);
 }
 .link-item input { padding: 8px 10px; }
+.link-item .action-cell { display: flex; flex-direction: column; gap: 6px; }
+.link-item .action-cell select, .link-item .action-cell .action-custom { width: 100%; min-width: 0; }
+.link-item .action-cell .action-custom { font-size: .62rem; text-transform: uppercase; letter-spacing: .12em; }
 .link-item .remove-row { background: none; border: 0; color: var(--accent); padding: 4px 8px; font-size: .85rem; }
 .link-item .remove-row:hover { color: var(--sand); }
+.link-tools { gap: 10px; }
+.link-tools button { border: 1px solid var(--line-strong); background: none; color: var(--paper); padding: 9px 14px; }
+.link-tools button:hover { border-color: var(--accent); color: var(--accent); }
+.linklike { display: inline-block; }
+
+/* extra social accounts (two artists, two accounts on the same platform, ...) */
+.extra-social {
+  display: grid;
+  grid-template-columns: 11em 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+.extra-social .remove-row { background: none; border: 0; color: var(--accent); font-size: .85rem; padding: 4px 8px; }
+/* single + album-out checkboxes, same line, left-aligned like Stickers */
+.flags-row { display: flex; justify-content: flex-start; gap: 28px; margin-top: 12px; }
+.flags-row .check-row { margin: 0; }
+
+/* design adjustments (Settings): simple numbers, applied without a new version */
+.design-head { margin-top: 26px; }
+.design-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 18px; margin-top: 10px; }
+@media (max-width: 640px) { .design-grid { grid-template-columns: 1fr 1fr; } }
+.design-grid label { font-size: .62rem; }
+.design-grid input, .design-grid select { padding: 8px 10px; }
+
+.form-box h3 {
+  font: 400 .68rem var(--font-head);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 18px 0 8px;
+}
 .mini-arrow { border: 0; color: var(--accent); padding: 0 3px; font-size: .7rem; letter-spacing: 0; }
 .mini-arrow:hover { color: var(--sand); }
 
