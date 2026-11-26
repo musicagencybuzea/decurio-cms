@@ -160,12 +160,13 @@ function design_vars(array $s): string
     $meta = $num('design_main_meta', 15);
     $flag = $num('design_flag', 11);
     $relTop = $num0('design_rel_top', 38);
-    $relGap = $num0('design_rel_gap', 6);
+    $relGap = $num0('design_rel_gap', 6);      // cover <-> titles
+    $relGap2 = $num0('design_rel_gap2', 6);    // titles <-> link box
     $relTitle = $num('design_rel_title', 24);
     $relSub = $num('design_rel_sub', 19);
     $relMeta = $num('design_rel_meta', 14);
     return ":root{--mp-title:{$title}px;--mp-meta:{$meta}px;--mp-flag:{$flag}px;--accent:{$accent};"
-        . "--rel-top:{$relTop}px;--rel-gap:{$relGap}px;--rel-title:{$relTitle}px;--rel-sub:{$relSub}px;--rel-meta:{$relMeta}px;}";
+        . "--rel-top:{$relTop}px;--rel-gap:{$relGap}px;--rel-gap2:{$relGap2}px;--rel-title:{$relTitle}px;--rel-sub:{$relSub}px;--rel-meta:{$relMeta}px;}";
 }
 
 /** Validate the catalogue number: 007 (main release) or 007A (linked release, letter suffix). */

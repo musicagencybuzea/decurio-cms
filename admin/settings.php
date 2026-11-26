@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'design_accent' => in_array($_POST['design_accent'] ?? '', ['#141414', '#f0f0f0', '#d6b399', '#f05078'], true) ? $_POST['design_accent'] : '#f05078',
         'design_rel_top' => isset($_POST['design_rel_top']) ? (string)max(0, (int)$_POST['design_rel_top']) : '38',
         'design_rel_gap' => isset($_POST['design_rel_gap']) ? (string)max(0, (int)$_POST['design_rel_gap']) : '6',
+        'design_rel_gap2' => isset($_POST['design_rel_gap2']) ? (string)max(0, (int)$_POST['design_rel_gap2']) : '6',
         'design_rel_title' => (string)((int)($_POST['design_rel_title'] ?? 0) ?: 24),
         'design_rel_sub' => (string)((int)($_POST['design_rel_sub'] ?? 0) ?: 19),
         'design_rel_meta' => (string)((int)($_POST['design_rel_meta'] ?? 0) ?: 14),
@@ -94,6 +95,10 @@ admin_page_open(t('settings.title'), 'settings');
         <div>
             <label for="design_rel_gap"><?= e(t('settings.design_rel_gap')) ?></label>
             <input type="number" min="0" max="80" id="design_rel_gap" name="design_rel_gap" value="<?= e($s['design_rel_gap'] ?? '6') ?>">
+        </div>
+        <div>
+            <label for="design_rel_gap2"><?= e(t('settings.design_rel_gap2')) ?></label>
+            <input type="number" min="0" max="80" id="design_rel_gap2" name="design_rel_gap2" value="<?= e($s['design_rel_gap2'] ?? '6') ?>">
         </div>
         <div>
             <label for="design_rel_title"><?= e(t('settings.design_rel_title')) ?></label>

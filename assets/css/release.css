@@ -42,8 +42,14 @@ body.release-page {
   padding: var(--rel-top, 38px) 22px 72px;
   display: flex;
   flex-direction: column;
-  gap: var(--rel-gap, 6px);
+  gap: 0; /* the block distances are now two separate settings (margins below) */
 }
+/* two independent spacing settings on the release page:
+   --rel-gap  = cover <-> titles    --rel-gap2 = titles <-> link box */
+.release-cover { margin-top: var(--rel-gap, 6px); }
+.release-head { margin-top: var(--rel-gap, 6px); }
+.link-box { margin-top: var(--rel-gap2, 6px); }
+.socials { margin-top: var(--rel-gap2, 6px); }
 
 .release-brand {
   align-self: center;
@@ -240,7 +246,8 @@ body.release-page {
 }
 .release-cover { z-index: 0; }
 .release-cover img.cover-img, .release-cover .cover-placeholder { position: relative; z-index: 1; }
-/* Video / Canvas background: always fully visible, black bars complete the sides */
+/* Video / Canvas background: landscape screen = fully visible with black bars;
+   portrait screen (phone) = proportional fill, sides cropped if needed. */
 .bg-video { background: #141414; color: #f0f0f0; }
 video.bg-canvas-video {
   position: fixed;
@@ -249,8 +256,12 @@ video.bg-canvas-video {
   width: 100vw;
   height: 100vh;
   height: 100dvh; /* mobile: follows the real viewport height */
-  object-fit: cover; /* proportional fill: grows without stretching, crops the sides if needed */
+  object-fit: contain; /* horizontal screen: video fully visible, black bars complete the sides */
   background: #141414;
   z-index: -1;
   pointer-events: none;
+}
+/* vertical screen (phone held upright): proportional fill, crops the sides, never stretched */
+@media (orientation: portrait) {
+  video.bg-canvas-video { object-fit: cover; }
 }
