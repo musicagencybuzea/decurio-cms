@@ -19,6 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         db()->prepare('DELETE FROM videos WHERE id=?')->execute([$id]);
         redirect('library.php?section=videos&saved=1');
     }
+    if (isset($_POST['rename_id'], $_POST['new_name'])) {
+        $nn = trim((string)$_POST['new_name']);
+        if ($nn !== '') db()->prepare('UPDATE videos SET name=? WHERE id=?')->execute([$nn, (int)$_POST['rename_id']]);
+        redirect('library.php?section=videos&saved=1');
+    }
     if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
         $name = trim((string)($_POST['name'] ?? ''));
         if ($name === '') fail(t('videos.err.name'));
@@ -62,7 +67,12 @@ try {
     <?php foreach ($videos as $v): ?>
     <div class="sticker-card video-card">
         <video src="../<?= e($v['file_path']) ?>" controls preload="metadata" muted></video>
-        <p class="small"><?= e($v['name']) ?></p>
+        <form method="post" class="rename-row">
+            <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="rename_id" value="<?= (int)$v['id'] ?>">
+            <input type="text" name="new_name" value="<?= e($v['name']) ?>" maxlength="120">
+            <button type="submit"><?= e(t('library.rename')) ?></button>
+        </form>
         <form method="post" onsubmit="return confirm('<?= e(t('videos.confirm_delete')) ?>')">
             <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
             <input type="hidden" name="delete_id" value="<?= (int)$v['id'] ?>">

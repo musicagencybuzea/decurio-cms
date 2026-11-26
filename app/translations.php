@@ -269,6 +269,7 @@ return [
         'albums.bg.adapt1' => 'Adapted 1',
         'albums.bg.adapt2' => 'Adapted 2',
         'albums.bg.adapt3' => 'Adapted 3',
+        'library.rename' => 'Rename',
     ],
     'fr' => [
         'nav.dashboard' => 'Tableau de bord',
@@ -537,6 +538,7 @@ return [
         'albums.bg.adapt1' => 'Adaptée 1',
         'albums.bg.adapt2' => 'Adaptée 2',
         'albums.bg.adapt3' => 'Adaptée 3',
+        'library.rename' => 'Renommer',
     ],
     'de' => [
         'nav.dashboard' => 'Übersicht',
@@ -805,5 +807,6 @@ return [
         'albums.bg.adapt1' => 'Angepasst 1',
         'albums.bg.adapt2' => 'Angepasst 2',
         'albums.bg.adapt3' => 'Angepasst 3',
+        'library.rename' => 'Umbenennen',
     ],
 ];

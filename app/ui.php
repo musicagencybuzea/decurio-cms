@@ -168,6 +168,119 @@ function design_vars(array $s): string
         . "--rel-top:{$relTop}px;--rel-gap:{$relGap}px;--rel-title:{$relTitle}px;--rel-sub:{$relSub}px;--rel-meta:{$relMeta}px;}";
 }
 
+/** Validate the catalogue number: 007 (main release) or 007A (linked release, letter suffix). */
+function clean_release_number(string $raw): string
+{
+    if (!preg_match('/^(\d{1,4})([A-Za-z])?$/', $raw, $m)) return '';
+    $number = str_pad($m[1], 3, '0', STR_PAD_LEFT);
+    return isset($m[2]) ? $number . strtoupper($m[2]) : $number;
+}
+
+/** Collect the album fields from a POST — shared by the save action and the live preview. */
+function collect_album_post(bool $forPreview): array
+{
+    $out = [];
+    $out['title'] = trim($_POST['title'] ?? '');
+    if ($out['title'] === '' && !$forPreview) fail(t('err.title_required'));
+    $out['subtitle'] = trim($_POST['subtitle'] ?? '');
+    $out['artists'] = trim($_POST['artists'] ?? '');
+    $out['is_single'] = isset($_POST['is_single']) ? 1 : 0;
+
+    $rawNumber = preg_replace('/\s+/', '', (string)($_POST['release_number'] ?? ''));
+    $releaseNumber = $rawNumber !== '' ? clean_release_number($rawNumber) : '';
+    if ($rawNumber !== '' && $releaseNumber === '' && !$forPreview) fail(t('err.number_invalid'));
+    $out['release_number'] = $releaseNumber;
+
+    $rd = trim((string)($_POST['release_date'] ?? ''));
+    $out['release_date'] = preg_match('/^\d{4}-\d{2}-\d{2}$/', $rd) ? $rd : '';
+
+    // Links: one unified draggable list, with an optional action word per row
+    $links = [];
+    $names = $_POST['link_name'] ?? [];
+    $urls = $_POST['link_url'] ?? [];
+    $actions = $_POST['link_action'] ?? [];
+    foreach ($names as $i => $name) {
+        $url = trim((string)($urls[$i] ?? ''));
+        $name = trim((string)$name);
+        if ($name === '' && !filter_var($url, FILTER_VALIDATE_URL)) continue;
+        $action = trim((string)($actions[$i] ?? ''));
+        if ($action === 'custom') $action = trim((string)($_POST['link_action_custom'][$i] ?? ''));
+        if ($action === '') $action = 'play'; // default action
+        if (!in_array($action, LINK_ACTIONS, true) && mb_strlen($action) > 12) $action = mb_substr($action, 0, 12);
+        $links[] = ['name' => $name !== '' ? $name : 'Listen', 'url' => filter_var($url, FILTER_VALIDATE_URL) ? $url : '', 'action' => $action];
+    }
+    $links = array_values(array_filter($links, fn($l) => $l['url'] !== ''));
+    $out['links'] = $links;
+
+    // Socials: four fixed accounts + extra accounts (two artists, two Instagram accounts, ...)
+    $socials = [];
+    foreach (['instagram', 'facebook', 'tiktok', 'youtube'] as $key) {
+        $u = trim((string)($_POST['socials'][$key] ?? ''));
+        if ($u !== '' && filter_var($u, FILTER_VALIDATE_URL)) $socials[$key] = $u;
+    }
+    $out['socials'] = $socials;
+    $extras = [];
+    $exPlatforms = $_POST['extra_platform'] ?? [];
+    $exUrls = $_POST['extra_url'] ?? [];
+    foreach ($exPlatforms as $i => $platform) {
+        $platform = (string)$platform;
+        $u = trim((string)($exUrls[$i] ?? ''));
+        if (in_array($platform, ['instagram', 'facebook', 'tiktok', 'youtube'], true)
+            && $u !== '' && filter_var($u, FILTER_VALIDATE_URL)) {
+            $extras[] = ['platform' => $platform, 'url' => $u];
+        }
+    }
+    $out['extras'] = $extras;
+
+    // Stickers: up to 3, position + size
+    $stickersOn = isset($_POST['stickers_enable']);
+    $slots = [];
+    if ($stickersOn) {
+        $used = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $sid = (int)($_POST['sticker_' . $i] ?? 0);
+            if ($sid <= 0) continue;
+            $exists = db()->prepare('SELECT id FROM stickers WHERE id=?');
+            $exists->execute([$sid]);
+            if (!$exists->fetch()) continue;
+            $pos = (string)($_POST['sticker_pos_' . $i] ?? 'tl');
+            if (!in_array($pos, STICKER_POSITIONS, true) || in_array($pos, $used, true)) {
+                foreach (STICKER_POSITIONS as $p2) {
+                    if (!in_array($p2, $used, true)) { $pos = $p2; break; }
+                }
+            }
+            $used[] = $pos;
+            $size = (string)($_POST['sticker_size_' . $i] ?? '2');
+            if (!in_array($size, ['1', '2', '3'], true)) $size = '2';
+            $slots[] = ['sticker_id' => $sid, 'position' => $pos, 'size' => $size];
+        }
+    }
+    $out['stickers_on'] = $stickersOn && $slots;
+    $out['slots'] = $slots;
+
+    $out['bg'] = in_array($_POST['bg_preset'] ?? 'noir', BG_PRESETS, true) ? $_POST['bg_preset'] : 'noir';
+    // video/Canvas background: library reference (validated); a freshly uploaded file overrides it
+    $out['video_id'] = null;
+    if ($out['bg'] === 'video') {
+        $vid = (int)($_POST['video_id'] ?? 0);
+        if ($vid > 0) {
+            try {
+                $ex = db()->prepare('SELECT id FROM videos WHERE id=?');
+                $ex->execute([$vid]);
+                if ($ex->fetch()) $out['video_id'] = $vid;
+            } catch (Throwable $e2) {
+                $out['video_id'] = null; // videos table not migrated yet
+            }
+        }
+    }
+    $out['box_color'] = in_array($_POST['box_color'] ?? 'auto', BOX_COLORS, true) ? $_POST['box_color'] : 'auto';
+    $out['box_transparent'] = isset($_POST['box_transparent']) ? 1 : 0;
+    // link text colour for this release's link box on the exclusive page ("" = automatic)
+    $lt = trim((string)($_POST['link_text'] ?? ''));
+    $out['link_text'] = in_array($lt, ['clair', 'fonce'], true) ? $lt : '';
+    return $out;
+}
+
 function admin_page_open(string $title, string $active): void
 {
     $s = settings();

@@ -17,6 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         db()->prepare('DELETE FROM covers WHERE id=?')->execute([$id]);
         redirect('library.php?section=covers&saved=1');
     }
+    if (isset($_POST['rename_id'], $_POST['new_name'])) {
+        $nn = trim((string)$_POST['new_name']);
+        if ($nn !== '') db()->prepare('UPDATE covers SET name=? WHERE id=?')->execute([$nn, (int)$_POST['rename_id']]);
+        redirect('library.php?section=covers&saved=1');
+    }
     if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
         $name = trim((string)($_POST['name'] ?? ''));
         if ($name === '') fail(t('covers.err.name'));
@@ -60,7 +65,12 @@ try {
     <?php foreach ($covers as $c): ?>
     <div class="sticker-card">
         <img src="../<?= e($c['file_path']) ?>" alt="<?= e($c['name']) ?>">
-        <p class="small"><?= e($c['name']) ?></p>
+        <form method="post" class="rename-row">
+            <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="rename_id" value="<?= (int)$c['id'] ?>">
+            <input type="text" name="new_name" value="<?= e($c['name']) ?>" maxlength="120">
+            <button type="submit"><?= e(t('library.rename')) ?></button>
+        </form>
         <form method="post" onsubmit="return confirm('<?= e(t('covers.confirm_delete')) ?>')">
             <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
             <input type="hidden" name="delete_id" value="<?= (int)$c['id'] ?>">

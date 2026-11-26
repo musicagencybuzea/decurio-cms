@@ -47,6 +47,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         db()->prepare('DELETE FROM tracks WHERE id=?')->execute([$id]);
         redirect('library.php?section=music&saved=1');
     }
+    if (isset($_POST['rename_id'], $_POST['new_name'])) {
+        $nn = trim((string)$_POST['new_name']);
+        if ($nn !== '') db()->prepare('UPDATE tracks SET name=? WHERE id=?')->execute([$nn, (int)$_POST['rename_id']]);
+        redirect('library.php?section=music&saved=1');
+    }
     if (isset($_FILES['file'])) {
         $name = trim((string)($_POST['name'] ?? ''));
         if ($name === '') fail(t('music.err.name'));
@@ -89,7 +94,14 @@ $ffmpeg = ffmpeg_available();
 <table>
     <?php foreach ($tracks as $tr): ?>
     <tr>
-        <td><?= e($tr['name']) ?></td>
+        <td>
+            <form method="post" class="rename-row">
+                <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+                <input type="hidden" name="rename_id" value="<?= (int)$tr['id'] ?>">
+                <input type="text" name="new_name" value="<?= e($tr['name']) ?>" maxlength="255">
+                <button type="submit"><?= e(t('library.rename')) ?></button>
+            </form>
+        </td>
         <td><audio controls preload="none" src="../<?= e($tr['file_path']) ?>"></audio></td>
         <td class="actions">
             <form method="post" onsubmit="return confirm('<?= e(t('music.confirm_delete')) ?>')">

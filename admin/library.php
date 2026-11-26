@@ -21,4 +21,20 @@ admin_page_open(t('nav.library'), 'library');
 </div>
 <?php
 require __DIR__ . '/_section_' . $section . '.php';
+?>
+<script>
+/* quand on choisit un fichier, pré-remplit le champ nom avec le nom du fichier (sans extension) */
+(function () {
+    document.querySelectorAll('form input[type="file"]').forEach(function (f) {
+        f.addEventListener('change', function () {
+            var form = f.closest('form');
+            var nameInput = form ? form.querySelector('input[name="name"]') : null;
+            if (nameInput && nameInput.value.trim() === '' && f.files && f.files.length) {
+                nameInput.value = f.files[0].name.replace(/\.[^.]+$/, '');
+            }
+        });
+    });
+})();
+</script>
+<?php
 admin_page_close();

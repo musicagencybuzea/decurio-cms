@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: albums.php');
     exit;
 }
+try {
 csrf_check();
 header('Cache-Control: no-store, max-age=0'); // the preview must never come from a cache
 
@@ -72,3 +73,10 @@ $_SESSION['preview_snapshot'] = [
 
 header('Location: ../preview-page.php?lang=' . lang());
 exit;
+} catch (Throwable $e) {
+    // the JS in albums.php extracts this marker and shows the exact reason in the preview frame
+    echo '<!--PREVIEW-ERROR: step 1 (saving the form state): '
+        . htmlspecialchars($e->getMessage(), ENT_QUOTES)
+        . ' (line ' . $e->getLine() . ') -->';
+    exit;
+}
