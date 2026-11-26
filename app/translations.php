@@ -256,6 +256,7 @@ return [
         'videos.err.video' => 'Only mp4 or webm videos are accepted.',
         'videos.err.save' => 'The video could not be saved on the server.',
         'stats.by_platform_all' => 'Clicks by platform — all pages combined',
+        'albums.sticker.add_another' => 'Add another sticker',
     ],
     'fr' => [
         'nav.dashboard' => 'Tableau de bord',
@@ -511,6 +512,7 @@ return [
         'videos.err.video' => 'Seules les vidéos mp4 ou webm sont acceptées.',
         'videos.err.save' => 'La vidéo n’a pas pu être enregistrée sur le serveur.',
         'stats.by_platform_all' => 'Clics par plateforme — toutes pages confondues',
+        'albums.sticker.add_another' => 'Ajouter un autre sticker',
     ],
     'de' => [
         'nav.dashboard' => 'Übersicht',
@@ -766,5 +768,6 @@ return [
         'videos.err.video' => 'Nur mp4- oder webm-Videos werden akzeptiert.',
         'videos.err.save' => 'Das Video konnte nicht auf dem Server gespeichert werden.',
         'stats.by_platform_all' => 'Klicks pro Plattform — alle Seiten zusammen',
+        'albums.sticker.add_another' => 'Weiteren Sticker hinzufügen',
     ],
 ];

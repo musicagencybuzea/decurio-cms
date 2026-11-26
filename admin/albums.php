@@ -288,8 +288,8 @@ admin_page_open(t('albums.manage'), 'albums');
 
         <p class="check-row"><input type="checkbox" id="stickers_enable" name="stickers_enable" value="1" <?= $editSlots ? 'checked' : '' ?>><label class="inline" for="stickers_enable"><?= e(t('albums.field.stickers_enable')) ?></label></p>
         <div id="sticker-panel"<?= $editSlots ? '' : ' hidden' ?>>
-            <?php for ($i = 1; $i <= 3; $i++): $slot = $editSlots[$i - 1] ?? null; ?>
-                <div class="sticker-slot">
+            <?php $visibleSlots = max(1, count($editSlots)); for ($i = 1; $i <= 3; $i++): $slot = $editSlots[$i - 1] ?? null; ?>
+                <div class="sticker-slot" data-slot="<?= $i ?>"<?= $i > $visibleSlots ? ' hidden' : '' ?>>
                     <label for="sticker_<?= $i ?>"><?= e(t('albums.sticker.slot')) ?> <?= $i ?></label>
                     <select id="sticker_<?= $i ?>" name="sticker_<?= $i ?>">
                         <option value="0">&mdash;</option>
@@ -311,6 +311,7 @@ admin_page_open(t('albums.manage'), 'albums');
                     </select>
                 </div>
             <?php endfor; ?>
+            <p class="check-row"><button type="button" id="add-sticker-slot" class="linklike"<?= count($editSlots) >= 3 ? ' hidden' : '' ?>>&plus; <?= e(t('albums.sticker.add_another')) ?></button></p>
             <p class="small"><a href="library.php?section=stickers"><?= e(t('stickers.add')) ?> &rarr;</a></p>
         </div>
 
@@ -613,6 +614,13 @@ if (window.Sortable) {
 // stickers panel + album-out date toggles
 const stk = document.getElementById('stickers_enable');
 if (stk) stk.addEventListener('change', () => { document.getElementById('sticker-panel').hidden = !stk.checked; });
+// one sticker slot first; "+ Add another sticker" reveals the next (max 3)
+const addSlotBtn = document.getElementById('add-sticker-slot');
+if (addSlotBtn) addSlotBtn.addEventListener('click', function () {
+    const next = document.querySelector('.sticker-slot[hidden]');
+    if (next) next.hidden = false;
+    if (!document.querySelector('.sticker-slot[hidden]')) addSlotBtn.hidden = true;
+});
 const ao = document.getElementById('album_out');
 if (ao) ao.addEventListener('change', () => { document.getElementById('album-out-row').hidden = !ao.checked; });
 if (window.flatpickr && document.getElementById('release_date')) {
@@ -753,7 +761,7 @@ function T_action(o) {
         fetch('preview.php?t=' + t, { method: 'POST', body: fd, cache: 'no-store' })
             .then(function (r) {
                 if (!r.ok) throw new Error('snapshot failed');
-                return fetch('/?preview=1&lang=' + LANG + '&t=' + Date.now(), { cache: 'no-store' });
+                return fetch('/index.php?preview=1&lang=' + LANG + '&t=' + Date.now(), { cache: 'no-store' });
             })
             .then(function (r) {
                 if (!r.ok) throw new Error('preview failed');
@@ -761,14 +769,14 @@ function T_action(o) {
             })
             .then(function (html) {
                 if (iframe) iframe.srcdoc = html.replace('<head>', '<head><base href="/">');
-                if (tab) tab.href = '/?preview=1&lang=' + LANG + '&x=' + Date.now();
+                if (tab) tab.href = '/index.php?preview=1&lang=' + LANG + '&x=' + Date.now();
             })
             .catch(function () {
                 form.target = 'preview_frame';
                 form.submit();
             });
     });
-    if (tab) tab.href = '/?preview=1&lang=' + LANG;
+    if (tab) tab.href = '/index.php?preview=1&lang=' + LANG;
 })();
 </script>
 <?php admin_page_close();

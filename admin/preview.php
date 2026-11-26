@@ -60,5 +60,5 @@ $_SESSION['preview_snapshot'] = [
     'publish_at' => null,
 ];
 
-header('Location: ../?preview=1&lang=' . lang());
+header('Location: ../index.php?preview=1&lang=' . lang());
 exit;

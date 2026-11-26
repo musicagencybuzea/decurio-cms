@@ -37,7 +37,7 @@ body.release-page {
   position: relative;
   max-width: 420px;
   margin: 0 auto;
-  padding: var(--rel-top, 38px) 22px 72px;
+  padding: var(--rel-top, 26px) 22px 72px;
   display: flex;
   flex-direction: column;
   gap: var(--rel-gap, 10px);
@@ -196,7 +196,7 @@ body.release-page {
 }
 
 @media (max-width: 480px) {
-  .release-wrap { padding-top: calc(var(--rel-top, 38px) * .8); }
+  .release-wrap { padding-top: calc(var(--rel-top, 26px) * .8); }
 }
 
 /* ---------- v1.3 / v1.4 ---------- */
@@ -206,7 +206,7 @@ body.release-page {
 /* ---------- v1.4 phase 2 ---------- */
 /* a sticker overhangs above the cover: only the cover slides down (margin), so the
    return link (decur.io, top-centre) stays pinned at the very top of the page */
-.has-sticker .release-cover { margin-top: 10%; }
+.has-sticker .release-cover { margin-top: 6%; }
 /* manual control of the link text colour (Settings - Design): wins over the automatic
    light-background contrast rule as soon as a choice is made */
 .release-page.ink-clair .link-box .rlink,

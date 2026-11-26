@@ -144,7 +144,7 @@ function design_vars(array $s): string
     $title = $num('design_main_title', 19);
     $meta = $num('design_main_meta', 15);
     $flag = $num('design_flag', 11);
-    $relTop = $num0('design_rel_top', 38);
+    $relTop = $num0('design_rel_top', 26);
     $relGap = $num0('design_rel_gap', 10);
     $relTitle = $num('design_rel_title', 24);
     $relSub = $num('design_rel_sub', 19);
