@@ -52,7 +52,7 @@ body.release-page {
 .release-cover { margin-top: 6px; }
 .release-head { margin-top: var(--rel-gap, 6px); }
 .link-box { margin-top: var(--rel-gap2, 6px); }
-.socials { margin-top: 6px; }
+.socials { margin-top: 18px; }
 
 .release-brand {
   align-self: center;
