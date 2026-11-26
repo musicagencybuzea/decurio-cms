@@ -18,8 +18,8 @@ function render_release_page(array $album, bool $preview): never
     $box = in_array($album['box_color'] ?? 'auto', BOX_COLORS, true) ? $album['box_color'] : 'auto';
     $transparent = !empty($album['box_transparent']);
     $releaseDate = (string)($album['release_date'] ?? '');
-    // v1.4 phase 2: manual link-text colour (auto by default) + sticker-aware page spacing
-    $inkSetting = (string)($settings['design_link_text'] ?? '');
+    // v1.4 phase 2: per-release link-text colour (empty = automatic) + sticker-aware page spacing
+    $inkSetting = trim((string)($album['link_text'] ?? ''));
     $inkClass = $inkSetting === 'clair' ? ' ink-clair' : ($inkSetting === 'fonce' ? ' ink-fonce' : '');
     $stickerClass = $stickers ? ' has-sticker' : '';
 

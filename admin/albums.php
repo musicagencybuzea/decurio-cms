@@ -140,6 +140,9 @@ function collect_album_post(bool $forPreview): array
     $out['bg'] = in_array($_POST['bg_preset'] ?? 'noir', BG_PRESETS, true) ? $_POST['bg_preset'] : 'noir';
     $out['box_color'] = in_array($_POST['box_color'] ?? 'auto', BOX_COLORS, true) ? $_POST['box_color'] : 'auto';
     $out['box_transparent'] = isset($_POST['box_transparent']) ? 1 : 0;
+    // link text colour for this release's link box on the exclusive page ("" = automatic)
+    $lt = trim((string)($_POST['link_text'] ?? ''));
+    $out['link_text'] = in_array($lt, ['clair', 'fonce'], true) ? $lt : '';
     return $out;
 }
 
@@ -186,12 +189,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['preview_mode'])) {
     $cover = resolve_cover($id);
 
     if ($id) {
-        $q = db()->prepare('UPDATE albums SET title=?,subtitle=?,is_single=?,release_number=?,artists=?,cover_path=?,links_json=?,socials_json=?,extra_socials_json=?,sticker_slots_json=?,bg_preset=?,box_color=?,box_transparent=?,release_date=?,publish_at=?,status=?,updated_at=NOW() WHERE id=?');
-        $q->execute([$p['title'], $p['subtitle'], $p['is_single'], $p['release_number'] !== '' ? $p['release_number'] : null, $p['artists'], $cover, json_encode($p['links'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['socials'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['extras'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null, ($p['stickers_on'] ? json_encode($p['slots']) : null), $p['bg'], $p['box_color'], $p['box_transparent'], $p['release_date'] !== '' ? $p['release_date'] : null, $publishAt, $status, $id]);
+        $q = db()->prepare('UPDATE albums SET title=?,subtitle=?,is_single=?,release_number=?,artists=?,cover_path=?,links_json=?,socials_json=?,extra_socials_json=?,sticker_slots_json=?,bg_preset=?,box_color=?,box_transparent=?,link_text=?,release_date=?,publish_at=?,status=?,updated_at=NOW() WHERE id=?');
+        $q->execute([$p['title'], $p['subtitle'], $p['is_single'], $p['release_number'] !== '' ? $p['release_number'] : null, $p['artists'], $cover, json_encode($p['links'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['socials'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['extras'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null, ($p['stickers_on'] ? json_encode($p['slots']) : null), $p['bg'], $p['box_color'], $p['box_transparent'], $p['link_text'] !== '' ? $p['link_text'] : null, $p['release_date'] !== '' ? $p['release_date'] : null, $publishAt, $status, $id]);
     } else {
         $min = (int)db()->query('SELECT COALESCE(MIN(sort_order),10) FROM albums')->fetchColumn();
-        $q = db()->prepare('INSERT INTO albums(title,subtitle,is_single,release_number,artists,cover_path,links_json,socials_json,extra_socials_json,sticker_slots_json,bg_preset,box_color,box_transparent,release_date,publish_at,status,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
-        $q->execute([$p['title'], $p['subtitle'], $p['is_single'], $p['release_number'] !== '' ? $p['release_number'] : null, $p['artists'], $cover, json_encode($p['links'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['socials'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['extras'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null, ($p['stickers_on'] ? json_encode($p['slots']) : null), $p['bg'], $p['box_color'], $p['box_transparent'], $p['release_date'] !== '' ? $p['release_date'] : null, $publishAt, $status, $min - 10]);
+        $q = db()->prepare('INSERT INTO albums(title,subtitle,is_single,release_number,artists,cover_path,links_json,socials_json,extra_socials_json,sticker_slots_json,bg_preset,box_color,box_transparent,link_text,release_date,publish_at,status,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),NOW())');
+        $q->execute([$p['title'], $p['subtitle'], $p['is_single'], $p['release_number'] !== '' ? $p['release_number'] : null, $p['artists'], $cover, json_encode($p['links'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['socials'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), json_encode($p['extras'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null, ($p['stickers_on'] ? json_encode($p['slots']) : null), $p['bg'], $p['box_color'], $p['box_transparent'], $p['link_text'] !== '' ? $p['link_text'] : null, $p['release_date'] !== '' ? $p['release_date'] : null, $publishAt, $status, $min - 10]);
     }
     unset($_SESSION['preview_snapshot']); // saved version now matches the preview
     redirect('releases.php?saved=1');
@@ -382,6 +385,13 @@ admin_page_open(t('albums.manage'), 'albums');
             <?php endforeach; ?>
         </select>
         <p class="check-row"><input type="checkbox" id="box_transparent" name="box_transparent" value="1" <?= !empty($edit['box_transparent']) ? 'checked' : '' ?>><label class="inline" for="box_transparent"><?= e(t('albums.box.transparent')) ?></label></p>
+        <label for="link_text"><?= e(t('albums.link_text')) ?></label>
+        <select id="link_text" name="link_text">
+            <?php $linkTextVal = (string)($edit['link_text'] ?? ''); ?>
+            <option value="" <?= $linkTextVal === '' ? 'selected' : '' ?>><?= e(t('albums.link_text.auto')) ?></option>
+            <option value="clair" <?= $linkTextVal === 'clair' ? 'selected' : '' ?>><?= e(t('albums.link_text.light')) ?></option>
+            <option value="fonce" <?= $linkTextVal === 'fonce' ? 'selected' : '' ?>><?= e(t('albums.link_text.dark')) ?></option>
+        </select>
 
         <p class="form-actions">
             <button type="submit" name="preview_mode" value="1" formaction="preview.php" formmethod="post" formtarget="preview_frame"><?= e(t('albums.preview')) ?> &nearr;</button>
@@ -630,19 +640,33 @@ function T_action(o) {
     }[o] || o;
 }
 
-/* inline live preview: clicking Preview renders the release page inside the form */
+/* inline live preview (phase 2):
+   1) the click always reveals the panel;
+   2) the form state is POSTed to preview.php via fetch (snapshot in the session) —
+      the page itself does NOT navigate, so suppressed/missing fields can never blank it;
+   3) only afterwards does the iframe load /?preview=1 — real URL, real asset paths.
+   If fetch is unavailable, the natural form submission (formtarget) remains as a fallback. */
 (function () {
     var btn = document.querySelector('[name=preview_mode]');
     var panel = document.getElementById('preview-panel');
     var tab = document.getElementById('open-preview-tab');
-    if (btn && panel) {
-        btn.addEventListener('click', function () { panel.hidden = false; if (tab) tab.hidden = false; });
-    }
-    if (tab && panel) {
-        // after an inline preview, the snapshot lives in the session: this link shows the
-        // SAME preview full-size in a new tab, no re-submission needed
-        tab.href = '../?preview=1';
-    }
+    if (!btn || !panel) return;
+    var iframe = panel.querySelector('iframe');
+    btn.addEventListener('click', function (ev) {
+        panel.hidden = false;
+        if (tab) tab.hidden = false;
+        if (!window.fetch) return; // no-JS fallback: native POST into the iframe
+        ev.preventDefault();
+        var form = btn.closest('form');
+        if (!form) return;
+        var fd = new FormData(form);
+        fd.set('preview_mode', '1');
+        if (iframe) iframe.src = 'about:blank';
+        fetch('preview.php', { method: 'POST', body: fd })
+            .then(function () { if (iframe) iframe.src = '/?preview=1&lang=' + LANG; })
+            .catch(function () { form.target = 'preview_frame'; form.submit(); });
+    });
+    if (tab) tab.href = '/?preview=1&lang=' + LANG;
 })();
 </script>
 <?php admin_page_close();

@@ -53,6 +53,7 @@ $_SESSION['preview_snapshot'] = [
     'bg_preset' => $p['bg'],
     'box_color' => $p['box_color'],
     'box_transparent' => $p['box_transparent'],
+    'link_text' => $p['link_text'] !== '' ? $p['link_text'] : null,
     'status' => 'draft',
     'publish_at' => null,
 ];

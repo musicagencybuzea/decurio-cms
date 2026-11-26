@@ -204,9 +204,9 @@ body.release-page {
 .release-cover { position: relative; } /* anchors the stickers */
 
 /* ---------- v1.4 phase 2 ---------- */
-/* a sticker overhangs above the cover: push the whole page down so the return link
-   (decur.io, top-centre) stays visible and clickable */
-.has-sticker .release-wrap { padding-top: calc(var(--rel-top, 38px) + 9%); }
+/* a sticker overhangs above the cover: only the cover slides down (margin), so the
+   return link (decur.io, top-centre) stays pinned at the very top of the page */
+.has-sticker .release-cover { margin-top: 10%; }
 /* manual control of the link text colour (Settings - Design): wins over the automatic
    light-background contrast rule as soon as a choice is made */
 .release-page.ink-clair .link-box .rlink,

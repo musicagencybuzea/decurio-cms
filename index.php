@@ -16,12 +16,12 @@ if (isset($_GET['preview'])) {
         // Live preview: the form state as it is on screen right now, saved or not
         $fields = ['title', 'subtitle', 'artists', 'release_number', 'links_json', 'socials_json',
                    'extra_socials_json', 'sticker_slots_json', 'bg_preset', 'box_color', 'box_transparent',
-                   'release_date', 'status', 'publish_at'];
+                   'link_text', 'release_date', 'status', 'publish_at'];
         if (!$previewAlbum && !empty($snap['title'])) {
             $previewAlbum = array_fill_keys([
                 'id', 'title', 'subtitle', 'is_single', 'release_number', 'artists', 'cover_path', 'links_json',
                 'socials_json', 'extra_socials_json', 'sticker_slots_json', 'bg_preset', 'box_color',
-                'box_transparent', 'music_id', 'publish_at', 'status', 'sort_order', 'created_at', 'updated_at', 'release_date'], '');
+                'box_transparent', 'link_text', 'music_id', 'publish_at', 'status', 'sort_order', 'created_at', 'updated_at', 'release_date'], '');
             $previewAlbum['id'] = 0;
             $previewAlbum['is_single'] = 0;
             $previewAlbum['box_transparent'] = 0;
