@@ -399,3 +399,20 @@ select option:checked, select option:hover { background: #d6b399; color: #141414
 }
 .small-open { font-size: .78rem; color: inherit; opacity: .7; }
 .small-open:hover { opacity: 1; }
+
+/* ---------- v1.4 phase 2: statistics ---------- */
+.stats-filter { display: flex; flex-wrap: wrap; gap: 14px; align-items: end; margin: 0 0 28px; }
+.stats-filter label { display: flex; flex-direction: column; gap: 5px; font-size: .8rem; letter-spacing: .05em; text-transform: uppercase; }
+.stats-filter button { height: 40px; padding: 0 26px; }
+.cols2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-bottom: 28px; }
+@media (max-width: 780px) { .cols2 { grid-template-columns: 1fr; } }
+.stat-section { border: 1px solid #4d4d4d; padding: 18px 18px 20px; background: transparent; }
+.stat-section h2 { margin: 0 0 16px; font-size: .85rem; letter-spacing: .14em; text-transform: uppercase; color: #d6b399; }
+.stat-block { display: flex; flex-direction: column; gap: 12px; }
+.sbar { display: flex; flex-direction: column; gap: 4px; }
+.sbar-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.sbar-name { font-size: .86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sbar-count { font-size: .86rem; color: #d6b399; font-variant-numeric: tabular-nums; }
+.sbar-track { height: 8px; background: #2a2a2a; border-radius: 4px; overflow: hidden; }
+.sbar-fill { height: 100%; background: #d6b399; border-radius: 4px; transition: width .4s ease; }
+.stat-section .list { margin: 0; }

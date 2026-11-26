@@ -68,7 +68,7 @@ function render_release_page(array $album, bool $preview): never
         <?php endif; ?>
     </header>
 
-    <section class="link-box box-<?= e($box) ?><?= $transparent ? ' box-transparent' : '' ?>">
+    <section class="link-box box-<?= e($box) ?><?= $transparent ? ' box-transparent' : '' ?>" data-album-stats="<?= (int)$album['id'] ?>" data-stats-src="release">
         <?php if ($links): ?>
             <?php $first = true; foreach ($links as $link): $row = link_row_html((array)$link, $first ? 'primary' : ''); $first = false; echo $row; endforeach; ?>
         <?php else: ?>
@@ -93,6 +93,7 @@ function render_release_page(array $album, bool $preview): never
     </nav>
     <?php endif; ?>
 </main>
+<?php if (function_exists('stats_beacon_js')) echo stats_beacon_js(); ?>
 </body>
 </html>
     <?php

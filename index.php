@@ -105,7 +105,7 @@ $favicon = $settings['favicon_file'] ?? '';
     $stickers = album_stickers($album);
     $pageUrl = release_url($album);
     ?>
-    <article class="album">
+    <article class="album" data-album-stats="<?= (int)$album['id'] ?>" data-stats-src="main">
         <div class="card">
             <div class="face front">
                 <?php foreach ($stickers as $sticker): ?>
@@ -207,5 +207,6 @@ if (coverWrap) {
     coverWrap.addEventListener('click', decurioSnippet(audio, btn));
 }
 </script>
+<?php if (function_exists('stats_beacon_js')) echo stats_beacon_js(); ?>
 </body>
 </html>

@@ -76,8 +76,40 @@ function link_row_html(array $link, string $classes = ''): string
         ? '<span class="pl-logo">' . $logo . '</span><span class="pl-name">' . e($name) . '</span>'
         : '<span class="pl-name">' . e($name) . '</span>';
     $action = action_label((string)($link['action'] ?? ''));
+    $rawAction = trim((string)($link['action'] ?? '')) ?: 'play';
     return '<div class="rlink ' . e($classes) . '">' . $left
-        . '<a class="act" href="' . e($url) . '" target="_blank" rel="noopener noreferrer">' . e($action) . '</a></div>';
+        . '<a class="act" href="' . e($url) . '" target="_blank" rel="noopener noreferrer"'
+        . ' data-platform="' . e($name) . '" data-action="' . e($rawAction) . '">' . e($action) . '</a></div>';
+}
+
+/** Shared click-tracking script (statistics). Delegated listener + sendBeacon so navigation is never blocked. */
+function stats_beacon_js(): string
+{
+    return <<<'HTML'
+<script>
+(function () {
+    function track(albumEl, src, act) {
+        var box = act.closest('[data-album-stats]');
+        if (!box || !albumEl) return;
+        var acts = Array.prototype.slice.call(box.querySelectorAll('.rlink a.act'));
+        var pos = acts.indexOf(act) + 1;
+        var url = '/click.php?album=' + albumEl + '&src=' + src
+            + '&platform=' + encodeURIComponent(act.dataset.platform || 'unknown')
+            + '&action=' + encodeURIComponent(act.dataset.action || 'play')
+            + '&pos=' + (pos > 0 ? pos : 1);
+        if (navigator.sendBeacon) navigator.sendBeacon(url);
+        else fetch(url, { method: 'POST', keepalive: true }).catch(function () {});
+    }
+    document.addEventListener('click', function (ev) {
+        var act = ev.target.closest ? ev.target.closest('a.act') : null;
+        if (!act) return;
+        var box = act.closest('[data-album-stats]');
+        if (!box) return;
+        track(box.getAttribute('data-album-stats'), box.getAttribute('data-stats-src') || 'main', act);
+    }, true);
+})();
+</script>
+HTML;
 }
 
 /** Design adjustments from Settings, injected as CSS variables (site owner can tweak without a new version). */
@@ -131,6 +163,7 @@ function admin_page_open(string $title, string $active): void
     <a class="tab<?= $active === 'dashboard' ? ' active' : '' ?>" href="dashboard.php"><?= e(t('nav.dashboard')) ?></a>
     <a class="tab<?= $active === 'albums' ? ' active' : '' ?>" href="albums.php"><?= e(t('nav.albums')) ?></a>
     <a class="tab<?= $active === 'releases' ? ' active' : '' ?>" href="releases.php"><?= e(t('nav.releases')) ?></a>
+    <a class="tab<?= $active === 'stats' ? ' active' : '' ?>" href="stats.php"><?= e(t('nav.stats')) ?></a>
     <a class="tab<?= $active === 'library' ? ' active' : '' ?>" href="library.php"><?= e(t('nav.library')) ?></a>
     <a class="tab<?= $active === 'settings' ? ' active' : '' ?>" href="settings.php"><?= e(t('nav.settings')) ?></a>
     <a class="tab logout" href="logout.php"><?= e(t('nav.logout')) ?></a>
