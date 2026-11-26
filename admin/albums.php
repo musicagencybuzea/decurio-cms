@@ -746,6 +746,10 @@ function T_action(o) {
     var WAIT = '<style>html,body{height:100%;margin:0;background:#141414}'
         + 'p{color:#f0f0f0;font-size:11px;letter-spacing:.3em;text-transform:uppercase;'
         + 'font-family:sans-serif;text-align:center;padding-top:48%}</style><p>…</p>';
+    var WAIT_ERR = '<style>html,body{height:100%;margin:0;background:#141414}'
+        + 'p{color:#f05078;font-size:11px;letter-spacing:.2em;text-transform:uppercase;'
+        + 'font-family:sans-serif;text-align:center;padding-top:42%;max-width:80%;margin-left:auto;margin-right:auto}'
+        + '</style><p>Preview blocked: preview-page.php or app/preview-render.php is missing on the server (see the upload list).</p>';
     btn.addEventListener('click', function (ev) {
         panel.hidden = false;
         if (tab) tab.hidden = false;
@@ -761,22 +765,26 @@ function T_action(o) {
         fetch('preview.php?t=' + t, { method: 'POST', body: fd, cache: 'no-store' })
             .then(function (r) {
                 if (!r.ok) throw new Error('snapshot failed');
-                return fetch('/index.php?preview=1&lang=' + LANG + '&t=' + Date.now(), { cache: 'no-store' });
+                return fetch('/preview-page.php?lang=' + LANG + '&t=' + Date.now(), { cache: 'no-store' });
             })
             .then(function (r) {
                 if (!r.ok) throw new Error('preview failed');
                 return r.text();
             })
             .then(function (html) {
+                if (html.indexOf('class="release-page') === -1) {
+                    if (iframe) iframe.srcdoc = WAIT_ERR; // served page was NOT the release page
+                    return;
+                }
                 if (iframe) iframe.srcdoc = html.replace('<head>', '<head><base href="/">');
-                if (tab) tab.href = '/index.php?preview=1&lang=' + LANG + '&x=' + Date.now();
+                if (tab) tab.href = '/preview-page.php?lang=' + LANG + '&x=' + Date.now();
             })
             .catch(function () {
                 form.target = 'preview_frame';
                 form.submit();
             });
     });
-    if (tab) tab.href = '/index.php?preview=1&lang=' + LANG;
+    if (tab) tab.href = '/preview-page.php?lang=' + LANG;
 })();
 </script>
 <?php admin_page_close();

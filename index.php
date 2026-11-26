@@ -6,39 +6,7 @@ require __DIR__ . '/app/ui.php';
 // Routing: links.decur.io/XXX (or XXXA for a linked release) + admin live preview (?preview)
 if (isset($_GET['preview'])) {
     header('Cache-Control: no-store, max-age=0'); // preview must never be served from a cache
-    if (logged_in() && !empty($_SESSION['preview_snapshot'])) {
-        $snap = $_SESSION['preview_snapshot'];
-        $previewAlbum = null;
-        if (!empty($snap['id'])) {
-            $q = db()->prepare('SELECT * FROM albums WHERE id=?');
-            $q->execute([(int)$snap['id']]);
-            $previewAlbum = $q->fetch();
-        }
-        // Live preview: the form state as it is on screen right now, saved or not
-        $fields = ['title', 'subtitle', 'artists', 'release_number', 'links_json', 'socials_json',
-                   'extra_socials_json', 'sticker_slots_json', 'bg_preset', 'video_id', 'box_color', 'box_transparent',
-                   'link_text', 'release_date', 'status', 'publish_at'];
-        if (!$previewAlbum && !empty($snap['title'])) {
-            $previewAlbum = array_fill_keys([
-                'id', 'title', 'subtitle', 'is_single', 'release_number', 'artists', 'cover_path', 'links_json',
-                'socials_json', 'extra_socials_json', 'sticker_slots_json', 'bg_preset', 'video_id', 'box_color',
-                'box_transparent', 'link_text', 'music_id', 'publish_at', 'status', 'sort_order', 'created_at', 'updated_at', 'release_date'], '');
-            $previewAlbum['id'] = 0;
-            $previewAlbum['is_single'] = 0;
-            $previewAlbum['box_transparent'] = 0;
-            $previewAlbum['music_id'] = null;
-        }
-        if ($previewAlbum) {
-            foreach ($fields as $f) {
-                if (array_key_exists($f, $snap)) $previewAlbum[$f] = $snap[$f];
-            }
-            if (!empty($snap['cover_path'])) $previewAlbum['cover_path'] = $snap['cover_path']; // freshly chosen cover
-            $previewAlbum['status'] = 'published'; // preview always renders like a live page
-            require __DIR__ . '/app/release-page.php';
-            render_release_page($previewAlbum, true);
-        }
-    }
-    fail('Preview not found.');
+    require __DIR__ . '/app/preview-render.php';
 }
 
 if (isset($_GET['num'])) {
