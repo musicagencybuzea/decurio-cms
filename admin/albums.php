@@ -642,29 +642,40 @@ function T_action(o) {
 
 /* inline live preview (phase 2):
    1) the click always reveals the panel;
-   2) the form state is POSTed to preview.php via fetch (snapshot in the session) —
-      the page itself does NOT navigate, so suppressed/missing fields can never blank it;
-   3) only afterwards does the iframe load /?preview=1 — real URL, real asset paths.
-   If fetch is unavailable, the natural form submission (formtarget) remains as a fallback. */
+   2) the form state is POSTed to preview.php via fetch (snapshot in the session);
+   3) the preview page is then FETCHED (parent context → session cookies guaranteed)
+      and injected via srcdoc with <base href="/"> so relative URLs resolve.
+   The iframe never does its own navigation — the "Preview not found" wording is gone. */
 (function () {
     var btn = document.querySelector('[name=preview_mode]');
     var panel = document.getElementById('preview-panel');
     var tab = document.getElementById('open-preview-tab');
     if (!btn || !panel) return;
     var iframe = panel.querySelector('iframe');
+    var WAIT = '<style>html,body{height:100%;margin:0;background:#141414}'
+        + 'p{color:#f0f0f0;font-size:11px;letter-spacing:.3em;text-transform:uppercase;'
+        + 'font-family:sans-serif;text-align:center;padding-top:48%}</style><p>…</p>';
     btn.addEventListener('click', function (ev) {
         panel.hidden = false;
         if (tab) tab.hidden = false;
-        if (!window.fetch) return; // no-JS fallback: native POST into the iframe
+        if (!window.fetch) return; // very old browser: native POST into the iframe as a fallback
         ev.preventDefault();
         var form = btn.closest('form');
         if (!form) return;
         var fd = new FormData(form);
         fd.set('preview_mode', '1');
-        if (iframe) iframe.src = 'about:blank';
+        if (iframe) iframe.srcdoc = WAIT;
         fetch('preview.php', { method: 'POST', body: fd })
-            .then(function () { if (iframe) iframe.src = '/?preview=1&lang=' + LANG; })
-            .catch(function () { form.target = 'preview_frame'; form.submit(); });
+            .then(function () {
+                return fetch('/?preview=1&lang=' + LANG).then(function (r) { return r.text(); });
+            })
+            .then(function (html) {
+                if (iframe) iframe.srcdoc = html.replace('<head>', '<head><base href="/">');
+            })
+            .catch(function () {
+                form.target = 'preview_frame';
+                form.submit();
+            });
     });
     if (tab) tab.href = '/?preview=1&lang=' + LANG;
 })();
